@@ -1,11 +1,11 @@
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
+import { getDb } from "@/db";
 
 export const dynamic = "force-dynamic";
 
 async function getDatabaseStatus(): Promise<"up" | "down"> {
   try {
-    await db.execute(sql`select 1`);
+    await getDb().execute(sql`select 1`);
     return "up";
   } catch {
     return "down";

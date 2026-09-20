@@ -1,5 +1,3 @@
-import { env } from "@/env";
-
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 const levelRank: Record<LogLevel, number> = {
@@ -9,8 +7,16 @@ const levelRank: Record<LogLevel, number> = {
   error: 40,
 };
 
+function resolveLogLevel(): LogLevel {
+  const raw = process.env.LOG_LEVEL;
+  if (raw === "debug" || raw === "info" || raw === "warn" || raw === "error") {
+    return raw;
+  }
+  return "info";
+}
+
 function shouldLog(level: LogLevel): boolean {
-  return levelRank[level] >= levelRank[env.LOG_LEVEL];
+  return levelRank[level] >= levelRank[resolveLogLevel()];
 }
 
 function write(level: LogLevel, message: string, meta?: Record<string, unknown>) {

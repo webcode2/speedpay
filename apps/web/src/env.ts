@@ -15,8 +15,21 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-export const env: Env = envSchema.parse({
-  DATABASE_URL: process.env.DATABASE_URL,
-  NODE_ENV: process.env.NODE_ENV,
-  LOG_LEVEL: process.env.LOG_LEVEL,
-});
+let cached: Env | undefined;
+
+/** Lazily parse and cache validated env. Throws when DATABASE_URL is missing/invalid. */
+export function getEnv(): Env {
+  if (!cached) {
+    cached = envSchema.parse({
+      DATABASE_URL: process.env.DATABASE_URL,
+      NODE_ENV: process.env.NODE_ENV,
+      LOG_LEVEL: process.env.LOG_LEVEL,
+    });
+  }
+  return cached;
+}
+
+/** Test helper — clears the cached parse result. */
+export function resetEnvCache(): void {
+  cached = undefined;
+}

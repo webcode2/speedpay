@@ -1,13 +1,13 @@
 import { sql } from "drizzle-orm";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
-import { db } from "@/db";
+import { getDb } from "@/db";
 
 export async function GET() {
   const timestamp = new Date().toISOString();
 
   try {
-    await db.execute(sql`select 1`);
+    await getDb().execute(sql`select 1`);
     logger.info("health.check", { database: "up" });
     return apiSuccess({
       status: "ok" as const,
