@@ -4,6 +4,8 @@ import { adminSessions } from "./admin-sessions";
 import { admins } from "./admins";
 import { permissions } from "./permissions";
 import { payoutAccounts } from "./payout-accounts";
+import { projectDocuments } from "./project-documents";
+import { projects } from "./projects";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -114,3 +116,17 @@ export const payoutAccountsRelations = relations(payoutAccounts, ({ one }) => ({
     references: [admins.id],
   }),
 }));
+
+export const projectsRelations = relations(projects, ({ many }) => ({
+  documents: many(projectDocuments),
+}));
+
+export const projectDocumentsRelations = relations(
+  projectDocuments,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectDocuments.projectId],
+      references: [projects.id],
+    }),
+  }),
+);

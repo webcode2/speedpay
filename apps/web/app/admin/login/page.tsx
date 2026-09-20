@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
         setError(json.error?.message ?? "Login failed");
         return;
       }
-      router.push("/admin/kyc");
+      router.push("/admin/projects");
       router.refresh();
     } catch {
       setError("Network error");

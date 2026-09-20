@@ -36,6 +36,9 @@ export default function AdminKycQueuePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">KYC queue</h1>
         <div className="flex gap-3 text-sm">
+          <Link className="text-emerald-400" href="/admin/projects">
+            Projects
+          </Link>
           <Link className="text-emerald-400" href="/admin/payouts">
             Payouts
           </Link>

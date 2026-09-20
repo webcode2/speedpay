@@ -5,22 +5,19 @@ import { useEffect, useState } from "react";
 
 type Item = {
   id: string;
+  name: string;
   status: string;
-  userEmail: string;
-  bankName: string;
-  accountNumberMasked: string;
-  accountName: string;
+  location: string | null;
 };
 
-export default function AdminPayoutsQueuePage() {
+export default function AdminProjectsPage() {
   const [items, setItems] = useState<Item[]>([]);
-  const [status, setStatus] = useState("PENDING");
+  const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function load(nextStatus = status) {
-    const res = await fetch(
-      `/api/admin/payouts?status=${encodeURIComponent(nextStatus)}`,
-    );
+    const qs = nextStatus ? `?status=${encodeURIComponent(nextStatus)}` : "";
+    const res = await fetch(`/api/admin/projects${qs}`);
     const json = await res.json();
     if (!json.success) {
       setError(json.error?.message ?? "Failed to load");
@@ -37,17 +34,17 @@ export default function AdminPayoutsQueuePage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Payout accounts</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-semibold">Projects</h1>
         <div className="flex gap-3 text-sm">
-          <Link className="text-emerald-400" href="/admin/projects">
-            Projects
+          <Link className="text-emerald-400" href="/admin/projects/new">
+            New
           </Link>
           <Link className="text-emerald-400" href="/admin/kyc">
             KYC
           </Link>
-          <Link className="text-emerald-400" href="/admin/login">
-            Staff login
+          <Link className="text-emerald-400" href="/admin/payouts">
+            Payouts
           </Link>
         </div>
       </div>
@@ -60,9 +57,12 @@ export default function AdminPayoutsQueuePage() {
           void load(next);
         }}
       >
-        <option value="PENDING">PENDING</option>
-        <option value="VERIFIED">VERIFIED</option>
-        <option value="REJECTED">REJECTED</option>
+        <option value="">All</option>
+        <option value="DRAFT">DRAFT</option>
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="PAUSED">PAUSED</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="ARCHIVED">ARCHIVED</option>
       </select>
       {error ? <p className="text-red-400">{error}</p> : null}
       <ul className="divide-y divide-slate-800 rounded border border-slate-800">
@@ -70,18 +70,18 @@ export default function AdminPayoutsQueuePage() {
           <li key={item.id}>
             <Link
               className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/payouts/${item.id}`}
+              href={`/admin/projects/${item.id}`}
             >
-              <span className="font-medium">{item.userEmail}</span>
+              <span className="font-medium">{item.name}</span>
               <span className="text-sm text-slate-400">
-                {item.bankName} · {item.accountName} · {item.accountNumberMasked} ·{" "}
                 {item.status}
+                {item.location ? ` · ${item.location}` : ""}
               </span>
             </Link>
           </li>
         ))}
         {items.length === 0 ? (
-          <li className="px-4 py-6 text-sm text-slate-500">No accounts</li>
+          <li className="px-4 py-6 text-sm text-slate-500">No projects</li>
         ) : null}
       </ul>
     </main>

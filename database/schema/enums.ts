@@ -47,3 +47,17 @@ export const PAYOUT_ACCOUNT_STATUSES = [
 ] as const;
 
 export type PayoutAccountStatus = (typeof PAYOUT_ACCOUNT_STATUSES)[number];
+
+export const PROJECT_STATUSES = [
+  "DRAFT",
+  "ACTIVE",
+  "PAUSED",
+  "COMPLETED",
+  "ARCHIVED",
+] as const;
+
+export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
+
+export const PROJECT_DOCUMENT_KINDS = ["IMAGE", "DOCUMENT"] as const;
+
+export type ProjectDocumentKind = (typeof PROJECT_DOCUMENT_KINDS)[number];

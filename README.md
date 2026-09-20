@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts` (seeded `admin@solar.local` / `ChangeMeNow!123`)
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -99,6 +99,16 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | POST | `/api/admin/payouts/[id]/approve` | Approve |
 | POST | `/api/admin/payouts/[id]/reject` | Reject with `{ reason }` |
 
+## Admin projects API
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/api/admin/projects` | List / create draft |
+| GET/PATCH | `/api/admin/projects/[id]` | Detail / edit |
+| POST | `/api/admin/projects/[id]/publish\|pause\|resume\|complete\|archive` | Lifecycle |
+| POST | `/api/admin/projects/[id]/documents` | Multipart upload (`kind`, `file`) |
+| GET | `/api/admin/projects/[id]/documents/[docId]` | Stream file |
+
 ## Scripts
 
 | Script | Description |
@@ -127,3 +137,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 03 design](docs/superpowers/specs/2026-09-20-chunk-03-authentication-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-03-authentication.md)
 - [Chunk 04 design](docs/superpowers/specs/2026-09-20-chunk-04-profile-verification-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-04-profile-verification.md)
 - [Chunk 05 design](docs/superpowers/specs/2026-09-20-chunk-05-payout-accounts-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-05-payout-accounts.md)
+- [Chunk 06 design](docs/superpowers/specs/2026-09-20-chunk-06-projects-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-06-projects.md)
