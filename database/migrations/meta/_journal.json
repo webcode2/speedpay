@@ -85,6 +85,13 @@
       "when": 1789912800000,
       "tag": "0011_withdrawals",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789913400000,
+      "tag": "0012_maturities",
+      "breakpoints": true
     }
   ]
 }

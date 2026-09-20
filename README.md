@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`, `/admin/withdrawals`
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`, `/admin/withdrawals`, `/admin/maturities`
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -110,6 +110,10 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | POST | `/api/admin/withdrawals/[id]/approve` | Approve |
 | POST | `/api/admin/withdrawals/[id]/reject` | Reject + release hold |
 | POST | `/api/admin/withdrawals/[id]/process` | Mock bank complete |
+| GET | `/api/maturities` | Investor eligible + processed maturities |
+| GET | `/api/admin/maturities` | Due ACTIVE investments (`maturities.read`) |
+| GET | `/api/admin/maturities/[id]` | Preview settlement |
+| POST | `/api/admin/maturities/[id]/process` | Process maturity → AVAILABLE (`maturities.process`) |
 
 ## Admin projects API
 
@@ -207,3 +211,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 14 design](docs/superpowers/specs/2026-09-20-chunk-14-returns-ui-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-14-returns-ui.md)
 - [Chunk 15 design](docs/superpowers/specs/2026-09-20-chunk-15-materialize-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-15-materialize.md)
 - [Chunk 16 design](docs/superpowers/specs/2026-09-20-chunk-16-withdrawals-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-16-withdrawals.md)
+- [Chunk 17 design](docs/superpowers/specs/2026-09-20-chunk-17-maturity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-17-maturity.md)

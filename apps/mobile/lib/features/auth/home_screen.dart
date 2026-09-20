@@ -75,6 +75,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       FilledButton(
                         onPressed: () =>
+                            Navigator.of(context).pushNamed('/maturity'),
+                        child: const Text('Maturity'),
+                      ),
+                      FilledButton(
+                        onPressed: () =>
                             Navigator.of(context).pushNamed('/wallet'),
                         child: const Text('Wallet'),
                       ),

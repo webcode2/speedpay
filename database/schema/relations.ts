@@ -18,6 +18,7 @@ import { investmentLots } from "./investment-lots";
 import { investmentAccruals } from "./investment-accruals";
 import { withdrawalPins } from "./withdrawal-pins";
 import { withdrawals } from "./withdrawals";
+import { maturities } from "./maturities";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -238,6 +239,10 @@ export const investmentsRelations = relations(investments, ({ one, many }) => ({
   }),
   lots: many(investmentLots),
   accruals: many(investmentAccruals),
+  maturity: one(maturities, {
+    fields: [investments.id],
+    references: [maturities.investmentId],
+  }),
 }));
 
 export const investmentLotsRelations = relations(investmentLots, ({ one }) => ({
@@ -302,5 +307,20 @@ export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
     fields: [withdrawals.processedBy],
     references: [admins.id],
     relationName: "withdrawalProcessedBy",
+  }),
+}));
+
+export const maturitiesRelations = relations(maturities, ({ one }) => ({
+  investment: one(investments, {
+    fields: [maturities.investmentId],
+    references: [investments.id],
+  }),
+  user: one(users, {
+    fields: [maturities.userId],
+    references: [users.id],
+  }),
+  processedByAdmin: one(admins, {
+    fields: [maturities.processedBy],
+    references: [admins.id],
   }),
 }));
