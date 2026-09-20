@@ -20,6 +20,8 @@ import { withdrawalPins } from "./withdrawal-pins";
 import { withdrawals } from "./withdrawals";
 import { maturities } from "./maturities";
 import { reinvestments } from "./reinvestments";
+import { notificationTemplates } from "./notification-templates";
+import { notifications } from "./notifications";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -47,6 +49,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [withdrawalPins.userId],
   }),
+  notifications: many(notifications),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -348,6 +351,18 @@ export const reinvestmentsRelations = relations(reinvestments, ({ one }) => ({
   }),
   user: one(users, {
     fields: [reinvestments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationTemplatesRelations = relations(
+  notificationTemplates,
+  () => ({}),
+);
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
     references: [users.id],
   }),
 }));

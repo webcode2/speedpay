@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../schema";
 import { seedAdmin } from "./admin";
+import { seedNotificationTemplates } from "./notification-templates";
 import { seedPermissions } from "./permissions";
 import { seedRoles } from "./roles";
 import { seedSettings } from "./settings";
@@ -25,6 +26,7 @@ async function main() {
     await seedRoles(db);
     const admin = await seedAdmin(db);
     await seedSettings(db);
+    await seedNotificationTemplates(db);
     console.info("[seed] complete", {
       adminEmail: admin.email,
       adminStatus: admin.status,

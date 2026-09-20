@@ -10,6 +10,7 @@ import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { adminHasPermission } from "@/permissions/check";
 import { maskAccountNumber } from "@/services/payout-account-service";
+import { safeNotify } from "@/services/notification-service";
 import { restoreAvailable } from "@/services/withdrawal-service";
 
 async function requirePerm(adminId: string, code: string) {
@@ -241,5 +242,13 @@ export async function processWithdrawal(adminId: string, id: string) {
     before: { status: "APPROVED" },
     after: { status: "COMPLETED" },
   });
+
+  await safeNotify({
+    userId: row.userId,
+    code: "WITHDRAWAL_COMPLETED",
+    vars: { amount: row.amount },
+    data: { withdrawalId: id },
+  });
+
   return updated!;
 }

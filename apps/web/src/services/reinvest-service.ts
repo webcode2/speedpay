@@ -16,6 +16,7 @@ import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { availableLots } from "@/services/admin-package-service";
 import { quoteInvestment } from "@/services/marketplace-service";
+import { safeNotify } from "@/services/notification-service";
 
 function isWithinWindow(pkg: {
   availableFrom: Date | null;
@@ -417,5 +418,19 @@ export async function createReinvestment(input: {
       investment: investment!,
       replayed: false as const,
     };
+  }).then(async (result) => {
+    if (!result.replayed) {
+      await safeNotify({
+        userId,
+        code: "REINVESTMENT_COMPLETED",
+        vars: { amount: result.reinvestment.amount },
+        data: {
+          reinvestmentId: result.reinvestment.id,
+          newInvestmentId: result.investment.id,
+          parentInvestmentId,
+        },
+      });
+    }
+    return result;
   });
 }

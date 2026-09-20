@@ -12,6 +12,7 @@ import {
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { ensureWallet } from "@/services/wallet-service";
+import { safeNotify } from "@/services/notification-service";
 import { verifyWithdrawalPin } from "@/services/withdrawal-pin-service";
 
 const MIN_WITHDRAWAL = 100;
@@ -235,7 +236,15 @@ export async function createWithdrawal(input: {
     return created!;
   });
 
-  return { withdrawal: toView(withdrawal), replayed: false as const };
+  const view = toView(withdrawal);
+  await safeNotify({
+    userId: input.userId,
+    code: "WITHDRAWAL_REQUESTED",
+    vars: { amount: view.amount },
+    data: { withdrawalId: view.id },
+  });
+
+  return { withdrawal: view, replayed: false as const };
 }
 
 export async function restoreAvailable(row: typeof withdrawals.$inferSelect) {

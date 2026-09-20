@@ -3,6 +3,7 @@ import { deposits } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { getPaymentProvider } from "@/payments";
+import { safeNotify } from "@/services/notification-service";
 import { postLedgerEntry } from "@/services/wallet-service";
 
 const MIN_DEPOSIT = 100; // minor units
@@ -157,6 +158,16 @@ export async function verifyDeposit(userId: string, id: string) {
     })
     .where(eq(deposits.id, id))
     .returning();
+
+  await safeNotify({
+    userId,
+    code: "DEPOSIT_COMPLETED",
+    vars: {
+      amount: creditAmount,
+      currency: updated!.currency,
+    },
+    data: { depositId: id },
+  });
 
   return { deposit: updated!, credited: true, alreadyComplete: false };
 }

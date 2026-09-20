@@ -16,6 +16,7 @@ import 'features/auth/verification_screen.dart';
 import 'features/marketplace/marketplace_screen.dart';
 import 'features/marketplace/package_detail_screen.dart';
 import 'features/maturity/maturity_screen.dart';
+import 'features/notifications/notifications_screen.dart';
 import 'features/portfolio/investment_detail_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
 import 'features/reinvest/reinvest_screen.dart';
@@ -79,6 +80,7 @@ class SolarInvestmentApp extends StatelessWidget {
         '/portfolio': (_) => const PortfolioScreen(),
         '/returns': (_) => const ReturnsScreen(),
         '/maturity': (_) => const MaturityScreen(),
+        '/notifications': (_) => const NotificationsScreen(),
         '/reinvest': (context) {
           final id = ModalRoute.of(context)?.settings.arguments as String?;
           if (id == null || id.isEmpty) {

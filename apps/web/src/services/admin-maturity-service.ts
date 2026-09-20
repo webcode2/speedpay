@@ -16,6 +16,7 @@ import { calculateInvestmentReturn } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { adminHasPermission } from "@/permissions/check";
+import { safeNotify } from "@/services/notification-service";
 import { ensureWallet } from "@/services/wallet-service";
 
 async function requirePerm(adminId: string, code: string) {
@@ -213,7 +214,7 @@ export async function processMaturity(input: {
   await ensureWallet(preview.userId);
   const now = new Date();
 
-  const maturity = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const [inv] = await tx
       .select()
       .from(investments)
@@ -227,7 +228,7 @@ export async function processMaturity(input: {
       .where(eq(maturities.investmentId, input.investmentId))
       .limit(1);
     if (existing) {
-      return existing;
+      return { maturity: existing, fresh: false as const };
     }
 
     const gate = canProcessMaturity({
@@ -350,10 +351,22 @@ export async function processMaturity(input: {
       },
     });
 
-    return created!;
+    return { maturity: created!, fresh: true as const };
   });
 
-  return { maturity, replayed: false as const };
+  if (result.fresh) {
+    await safeNotify({
+      userId: result.maturity.userId,
+      code: "INVESTMENT_MATURED",
+      vars: { maturityValue: result.maturity.maturityValue },
+      data: {
+        investmentId: result.maturity.investmentId,
+        maturityId: result.maturity.id,
+      },
+    });
+  }
+
+  return { maturity: result.maturity, replayed: !result.fresh };
 }
 
 export async function listInvestorMaturities(userId: string) {

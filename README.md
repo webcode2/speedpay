@@ -117,6 +117,9 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/reinvestments` | List my reinvestments |
 | GET | `/api/reinvestments/preview` | Remaining reinvestable (`parentInvestmentId`) |
 | POST | `/api/reinvestments` | Reinvest matured funds into a new package |
+| GET | `/api/notifications` | In-app inbox + unreadCount |
+| POST | `/api/notifications/[id]/read` | Mark one read |
+| POST | `/api/notifications/read-all` | Mark all read |
 
 ## Admin projects API
 
@@ -216,3 +219,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 16 design](docs/superpowers/specs/2026-09-20-chunk-16-withdrawals-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-16-withdrawals.md)
 - [Chunk 17 design](docs/superpowers/specs/2026-09-20-chunk-17-maturity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-17-maturity.md)
 - [Chunk 18 design](docs/superpowers/specs/2026-09-20-chunk-18-reinvest-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-18-reinvest.md)
+- [Chunk 19 design](docs/superpowers/specs/2026-09-20-chunk-19-notifications-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-19-notifications.md)

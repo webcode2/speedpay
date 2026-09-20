@@ -14,6 +14,7 @@ import {
 } from "@/auth/session";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { safeNotify } from "@/services/notification-service";
 
 type Meta = {
   ipAddress?: string | null;
@@ -60,6 +61,8 @@ export async function registerUser(
     ipAddress: meta.ipAddress,
     userAgent: meta.userAgent,
   });
+
+  await safeNotify({ userId: result.id, code: "ACCOUNT_CREATED" });
 
   return { token: rawToken, user: toPublicUser(result) };
 }

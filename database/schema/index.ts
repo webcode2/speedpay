@@ -29,5 +29,7 @@ export { withdrawalPins } from "./withdrawal-pins";
 export { withdrawals } from "./withdrawals";
 export { maturities } from "./maturities";
 export { reinvestments } from "./reinvestments";
+export { notificationTemplates } from "./notification-templates";
+export { notifications } from "./notifications";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";
