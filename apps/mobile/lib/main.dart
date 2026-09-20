@@ -15,6 +15,8 @@ import 'features/auth/reset_password_screen.dart';
 import 'features/auth/verification_screen.dart';
 import 'features/marketplace/marketplace_screen.dart';
 import 'features/marketplace/package_detail_screen.dart';
+import 'features/wallet/wallet_screen.dart';
+import 'features/wallet/wallet_transaction_screen.dart';
 
 String defaultApiBaseUrl() {
   const fromEnv = String.fromEnvironment('API_BASE_URL');
@@ -74,6 +76,16 @@ class SolarInvestmentApp extends StatelessWidget {
             );
           }
           return PackageDetailScreen(packageId: id);
+        },
+        '/wallet': (_) => const WalletScreen(),
+        '/wallet/transaction': (context) {
+          final id = ModalRoute.of(context)?.settings.arguments as String?;
+          if (id == null || id.isEmpty) {
+            return const Scaffold(
+              body: Center(child: Text('Missing transaction id')),
+            );
+          }
+          return WalletTransactionScreen(transactionId: id);
         },
       },
       initialRoute: '/',

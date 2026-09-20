@@ -34,7 +34,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, and marketplace browse/quote are in the app; KYC document upload remains on web for Chunk 04. Purchase/payment comes in later chunks.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, marketplace browse/quote, and wallet are in the app. KYC document upload remains on web for Chunk 04. Deposits/purchases come in later chunks.
 
 ### Seeded admin (local dev only)
 
@@ -125,6 +125,14 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/marketplace/packages/[id]` | Detail + current version terms |
 | POST | `/api/marketplace/packages/[id]/quote` | `{ lotCount }` preview (no purchase) |
 
+## Wallet API (investor)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/wallet` | Balances derived from ledger (minor units) |
+| GET | `/api/wallet/transactions` | History |
+| GET | `/api/wallet/transactions/[id]` | Detail |
+
 ## Scripts
 
 | Script | Description |
@@ -143,6 +151,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - Investors (`users`) and staff (`admins`) are separate identity tables
 - KYC documents via `ObjectStorage` (local or R2)
 - Payout accounts require KYC approval and staff review before `VERIFIED`
+- Wallet balances are derived from immutable ledger entries (no client-side mutation)
 - Financial calculations will be implemented server-side later
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
@@ -156,3 +165,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 06 design](docs/superpowers/specs/2026-09-20-chunk-06-projects-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-06-projects.md)
 - [Chunk 07 design](docs/superpowers/specs/2026-09-20-chunk-07-packages-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-07-packages.md)
 - [Chunk 08 design](docs/superpowers/specs/2026-09-20-chunk-08-marketplace-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-08-marketplace.md)
+- [Chunk 09 design](docs/superpowers/specs/2026-09-20-chunk-09-wallet-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-09-wallet.md)

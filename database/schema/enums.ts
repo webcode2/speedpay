@@ -76,3 +76,27 @@ export type PackageStatus = (typeof PACKAGE_STATUSES)[number];
 export const RETURN_TYPES = ["FIXED_RETURN", "FIXED_PROFIT"] as const;
 
 export type ReturnType = (typeof RETURN_TYPES)[number];
+
+export const LEDGER_ACCOUNT_CODES = ["AVAILABLE", "PENDING"] as const;
+
+export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[number];
+
+export const WALLET_TX_TYPES = [
+  "DEPOSIT",
+  "WITHDRAWAL",
+  "INVESTMENT",
+  "RETURN",
+  "REVERSAL",
+  "ADJUSTMENT",
+] as const;
+
+export type WalletTxType = (typeof WALLET_TX_TYPES)[number];
+
+export const WALLET_TX_STATUSES = [
+  "PENDING",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
+] as const;
+
+export type WalletTxStatus = (typeof WALLET_TX_STATUSES)[number];

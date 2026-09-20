@@ -8,6 +8,10 @@ import { projectDocuments } from "./project-documents";
 import { projects } from "./projects";
 import { investmentPackages } from "./investment-packages";
 import { packageVersions } from "./package-versions";
+import { ledgerAccounts } from "./ledger-accounts";
+import { ledgerEntries } from "./ledger-entries";
+import { walletTransactions } from "./wallet-transactions";
+import { wallets } from "./wallets";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -24,6 +28,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(userSessions),
   verificationRequests: many(verificationRequests),
   payoutAccounts: many(payoutAccounts),
+  wallet: one(wallets, {
+    fields: [users.id],
+    references: [wallets.userId],
+  }),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -151,3 +159,40 @@ export const packageVersionsRelations = relations(packageVersions, ({ one }) => 
     references: [investmentPackages.id],
   }),
 }));
+
+export const walletsRelations = relations(wallets, ({ one, many }) => ({
+  user: one(users, {
+    fields: [wallets.userId],
+    references: [users.id],
+  }),
+  accounts: many(ledgerAccounts),
+  transactions: many(walletTransactions),
+}));
+
+export const ledgerAccountsRelations = relations(
+  ledgerAccounts,
+  ({ one, many }) => ({
+    wallet: one(wallets, {
+      fields: [ledgerAccounts.walletId],
+      references: [wallets.id],
+    }),
+    entries: many(ledgerEntries),
+  }),
+);
+
+export const ledgerEntriesRelations = relations(ledgerEntries, ({ one }) => ({
+  account: one(ledgerAccounts, {
+    fields: [ledgerEntries.ledgerAccountId],
+    references: [ledgerAccounts.id],
+  }),
+}));
+
+export const walletTransactionsRelations = relations(
+  walletTransactions,
+  ({ one }) => ({
+    wallet: one(wallets, {
+      fields: [walletTransactions.walletId],
+      references: [wallets.id],
+    }),
+  }),
+);

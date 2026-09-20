@@ -63,6 +63,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.of(context).pushNamed('/marketplace'),
                         child: const Text('Browse packages'),
                       ),
+                      FilledButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/wallet'),
+                        child: const Text('Wallet'),
+                      ),
                       TextButton(
                         onPressed: () =>
                             Navigator.of(context).pushNamed('/profile'),
