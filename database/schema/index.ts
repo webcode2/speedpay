@@ -3,6 +3,7 @@ export * from "./enums";
 export { users } from "./users";
 export { userProfiles } from "./user-profiles";
 export { userSessions } from "./user-sessions";
+export { passwordResetTokens } from "./password-reset-tokens";
 export { admins } from "./admins";
 export { roles } from "./roles";
 export { permissions } from "./permissions";
