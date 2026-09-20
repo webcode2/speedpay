@@ -5,14 +5,15 @@ import { AppError } from "@/lib/app-error";
 import { getPaymentProvider } from "@/payments";
 import { safeNotify } from "@/services/notification-service";
 import { postLedgerEntry } from "@/services/wallet-service";
-
-const MIN_DEPOSIT = 100; // minor units
+import { getSetting, getSettingNumber } from "@/settings/settings";
 
 export async function createDeposit(userId: string, amount: number) {
-  if (!Number.isInteger(amount) || amount < MIN_DEPOSIT) {
+  const minDeposit = await getSettingNumber("deposit.min_amount", 100);
+  const currency = await getSetting("app.currency", "NGN");
+  if (!Number.isInteger(amount) || amount < minDeposit) {
     throw new AppError(
       "VALIDATION_ERROR",
-      `amount must be an integer >= ${MIN_DEPOSIT} (minor units).`,
+      `amount must be an integer >= ${minDeposit} (minor units).`,
       400,
     );
   }
@@ -23,7 +24,7 @@ export async function createDeposit(userId: string, amount: number) {
     .values({
       userId,
       amount,
-      currency: "NGN",
+      currency,
       status: "PENDING",
       provider: "mock",
     })
@@ -32,7 +33,7 @@ export async function createDeposit(userId: string, amount: number) {
   const provider = getPaymentProvider();
   const init = await provider.initialize({
     amount,
-    currency: "NGN",
+    currency,
     reference: deposit!.id,
     metadata: { userId },
   });

@@ -3,14 +3,16 @@ import { withdrawalPins } from "@solar/database/schema";
 import { hashPassword, verifyPassword } from "@/auth/password";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { getSettingNumber } from "@/settings/settings";
 
-const PIN_RE = /^\d{4,6}$/;
-
-export function assertValidPinFormat(pin: string) {
-  if (!PIN_RE.test(pin)) {
+export async function assertValidPinFormat(pin: string) {
+  const minLen = await getSettingNumber("withdrawal.pin_min_length", 4);
+  const maxLen = await getSettingNumber("withdrawal.pin_max_length", 6);
+  const re = new RegExp(`^\\d{${minLen},${maxLen}}$`);
+  if (!re.test(pin)) {
     throw new AppError(
       "VALIDATION_ERROR",
-      "PIN must be 4–6 digits.",
+      `PIN must be ${minLen}–${maxLen} digits.`,
       400,
     );
   }
@@ -27,7 +29,7 @@ export async function getPinStatus(userId: string) {
 }
 
 export async function setWithdrawalPin(userId: string, pin: string) {
-  assertValidPinFormat(pin);
+  await assertValidPinFormat(pin);
   const db = getDb();
   const [existing] = await db
     .select()
@@ -51,8 +53,8 @@ export async function changeWithdrawalPin(
   currentPin: string,
   newPin: string,
 ) {
-  assertValidPinFormat(currentPin);
-  assertValidPinFormat(newPin);
+  await assertValidPinFormat(currentPin);
+  await assertValidPinFormat(newPin);
   const db = getDb();
   const [row] = await db
     .select()
@@ -75,7 +77,7 @@ export async function changeWithdrawalPin(
 }
 
 export async function verifyWithdrawalPin(userId: string, pin: string) {
-  assertValidPinFormat(pin);
+  await assertValidPinFormat(pin);
   const db = getDb();
   const [row] = await db
     .select()

@@ -6,6 +6,7 @@ import {
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { logger } from "@/lib/logger";
+import { getSettingBool } from "@/settings/settings";
 
 export function renderTemplate(
   template: string,
@@ -23,6 +24,9 @@ export async function notifyUser(input: {
   vars?: Record<string, string | number>;
   data?: Record<string, unknown>;
 }) {
+  const enabled = await getSettingBool("notifications.enabled", true);
+  if (!enabled) return null;
+
   const db = getDb();
   const [tpl] = await db
     .select()

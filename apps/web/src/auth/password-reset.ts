@@ -3,14 +3,17 @@ import { passwordResetTokens } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { generateOpaqueToken, hashToken } from "@/auth/tokens";
 import { AppError } from "@/lib/app-error";
-
-const RESET_TTL_MS = 60 * 60 * 1000;
+import { getSettingNumber } from "@/settings/settings";
 
 export async function createPasswordResetToken(userId: string) {
   const db = getDb();
   const rawToken = generateOpaqueToken();
   const tokenHash = hashToken(rawToken);
-  const expiresAt = new Date(Date.now() + RESET_TTL_MS);
+  const minutes = await getSettingNumber(
+    "security.reset_token_ttl_minutes",
+    60,
+  );
+  const expiresAt = new Date(Date.now() + Math.max(1, minutes) * 60 * 1000);
 
   await db
     .update(passwordResetTokens)

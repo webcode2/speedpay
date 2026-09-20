@@ -43,6 +43,8 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   { code: "roles.update", name: "Update roles" },
   { code: "audit.read", name: "Read audit logs" },
   { code: "reports.read", name: "Read reports" },
+  { code: "settings.read", name: "Read system settings" },
+  { code: "settings.update", name: "Update system settings" },
 ];
 
 export const ALL_PERMISSION_CODES = PERMISSION_CATALOG.map((p) => p.code);

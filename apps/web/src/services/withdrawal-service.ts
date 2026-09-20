@@ -14,13 +14,30 @@ import { AppError } from "@/lib/app-error";
 import { ensureWallet } from "@/services/wallet-service";
 import { safeNotify } from "@/services/notification-service";
 import { verifyWithdrawalPin } from "@/services/withdrawal-pin-service";
+import { getSettingNumber } from "@/settings/settings";
 
-const MIN_WITHDRAWAL = 100;
-const BLOCKED = new Set([
-  "WITHDRAWAL_RESTRICTED",
-  "SUSPENDED",
-  "CLOSED",
-]);
+export function canSubmitWithdrawal(input: {
+  userStatus: string;
+  amount: number;
+  availableBalance: number;
+  payoutStatus: string;
+  minAmount?: number;
+}): string | null {
+  const minAmount = input.minAmount ?? 100;
+  const BLOCKED = new Set([
+    "WITHDRAWAL_RESTRICTED",
+    "SUSPENDED",
+    "CLOSED",
+  ]);
+  if (input.userStatus !== "KYC_APPROVED") return "KYC_REQUIRED";
+  if (BLOCKED.has(input.userStatus)) return "WITHDRAWAL_BLOCKED";
+  if (!Number.isInteger(input.amount) || input.amount < minAmount) {
+    return "INVALID_AMOUNT";
+  }
+  if (input.amount > input.availableBalance) return "INSUFFICIENT_BALANCE";
+  if (input.payoutStatus !== "VERIFIED") return "PAYOUT_NOT_VERIFIED";
+  return null;
+}
 
 function toView(row: typeof withdrawals.$inferSelect) {
   return {
@@ -35,22 +52,6 @@ function toView(row: typeof withdrawals.$inferSelect) {
     reviewedAt: row.reviewedAt,
     processedAt: row.processedAt,
   };
-}
-
-export function canSubmitWithdrawal(input: {
-  userStatus: string;
-  amount: number;
-  availableBalance: number;
-  payoutStatus: string;
-}): string | null {
-  if (input.userStatus !== "KYC_APPROVED") return "KYC_REQUIRED";
-  if (BLOCKED.has(input.userStatus)) return "WITHDRAWAL_BLOCKED";
-  if (!Number.isInteger(input.amount) || input.amount < MIN_WITHDRAWAL) {
-    return "INVALID_AMOUNT";
-  }
-  if (input.amount > input.availableBalance) return "INSUFFICIENT_BALANCE";
-  if (input.payoutStatus !== "VERIFIED") return "PAYOUT_NOT_VERIFIED";
-  return null;
 }
 
 export async function listWithdrawals(userId: string) {
@@ -83,6 +84,7 @@ export async function createWithdrawal(input: {
   idempotencyKey?: string;
 }) {
   await verifyWithdrawalPin(input.userId, input.pin);
+  const minAmount = await getSettingNumber("withdrawal.min_amount", 100);
   const db = getDb();
 
   if (input.idempotencyKey) {
@@ -162,6 +164,7 @@ export async function createWithdrawal(input: {
       amount: input.amount,
       availableBalance,
       payoutStatus: account.status,
+      minAmount,
     });
     if (gate === "KYC_REQUIRED") {
       throw new AppError("KYC_REQUIRED", "KYC approval required.", 403);
@@ -176,7 +179,7 @@ export async function createWithdrawal(input: {
     if (gate === "INVALID_AMOUNT") {
       throw new AppError(
         "VALIDATION_ERROR",
-        `amount must be an integer >= ${MIN_WITHDRAWAL}.`,
+        `amount must be an integer >= ${minAmount}.`,
         400,
       );
     }

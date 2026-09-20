@@ -70,6 +70,11 @@ export const ADMIN_NAV_LINKS = [
   },
   { href: "/admin/audit", label: "Audit", permissions: ["audit.read"] },
   { href: "/admin/reports", label: "Reports", permissions: ["reports.read"] },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    permissions: ["settings.read"],
+  },
 ] as const;
 
 export function AdminNav() {

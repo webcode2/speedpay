@@ -15,16 +15,29 @@ import {
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { safeNotify } from "@/services/notification-service";
+import { getSettingNumber } from "@/settings/settings";
 
 type Meta = {
   ipAddress?: string | null;
   userAgent?: string | null;
 };
 
+async function assertPasswordPolicy(password: string) {
+  const min = await getSettingNumber("security.password_min_length", 12);
+  if (password.length < min) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      `Password must be at least ${min} characters.`,
+      400,
+    );
+  }
+}
+
 export async function registerUser(
   input: { email: string; password: string; phone?: string | null },
   meta: Meta = {},
 ) {
+  await assertPasswordPolicy(input.password);
   const db = getDb();
   const [existing] = await db
     .select({ id: users.id })
@@ -137,6 +150,7 @@ export async function forgotPassword(email: string) {
 }
 
 export async function resetPassword(rawToken: string, password: string) {
+  await assertPasswordPolicy(password);
   const row = await consumePasswordResetToken(rawToken);
   const passwordHash = await hashPassword(password);
   const db = getDb();

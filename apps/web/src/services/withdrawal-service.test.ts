@@ -39,13 +39,15 @@ describe("canSubmitWithdrawal", () => {
 });
 
 describe("assertValidPinFormat", () => {
-  it("accepts 4-6 digit pins", () => {
-    expect(() => assertValidPinFormat("1234")).not.toThrow();
-    expect(() => assertValidPinFormat("123456")).not.toThrow();
+  it("accepts 4-6 digit pins", async () => {
+    await expect(assertValidPinFormat("1234")).resolves.toBeUndefined();
+    await expect(assertValidPinFormat("123456")).resolves.toBeUndefined();
   });
 
-  it("rejects invalid pins", () => {
-    expect(() => assertValidPinFormat("12")).toThrow(AppError);
-    expect(() => assertValidPinFormat("abcdef")).toThrow(AppError);
+  it("rejects invalid pins", async () => {
+    await expect(assertValidPinFormat("12")).rejects.toBeInstanceOf(AppError);
+    await expect(assertValidPinFormat("abcdef")).rejects.toBeInstanceOf(
+      AppError,
+    );
   });
 });

@@ -11,6 +11,7 @@ import {
 } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { getSettingNumber } from "@/settings/settings";
 
 function roundMoney(n: number): number {
   return Math.round(n * 100) / 100;
@@ -135,7 +136,8 @@ export async function getInvestmentReturnDetail(
 
   const calc = calculateInvestmentReturn({ ...input, currentTime: now });
   const todayReturn = calculateTodayReturn(input, now);
-  const series = buildReturnSeries({ ...input, currentTime: now }, 24);
+  const pointCount = await getSettingNumber("returns.series_point_count", 24);
+  const series = buildReturnSeries({ ...input, currentTime: now }, pointCount);
 
   return {
     investmentId: row.inv.id,

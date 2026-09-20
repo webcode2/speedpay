@@ -2,8 +2,11 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 import { userSessions, users } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { generateOpaqueToken, hashToken } from "@/auth/tokens";
+import { getSettingNumber } from "@/settings/settings";
 
-function sessionTtlDays(): number {
+async function sessionTtlDays(): Promise<number> {
+  const fromDb = await getSettingNumber("security.session_ttl_days", 0);
+  if (fromDb > 0) return Math.max(1, fromDb);
   return Math.max(1, Number(process.env.SESSION_TTL_DAYS ?? 30));
 }
 
@@ -15,9 +18,8 @@ export async function createUserSession(input: {
   const db = getDb();
   const rawToken = generateOpaqueToken();
   const tokenHash = hashToken(rawToken);
-  const expiresAt = new Date(
-    Date.now() + sessionTtlDays() * 24 * 60 * 60 * 1000,
-  );
+  const days = await sessionTtlDays();
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
   const [session] = await db
     .insert(userSessions)

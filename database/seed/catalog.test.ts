@@ -44,9 +44,11 @@ describe("seed catalog", () => {
         "roles.update",
         "audit.read",
         "reports.read",
+        "settings.read",
+        "settings.update",
       ]),
     );
-    expect(codes).toHaveLength(33);
+    expect(codes).toHaveLength(35);
   });
 
   it("includes seven roles", () => {

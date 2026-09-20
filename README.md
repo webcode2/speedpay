@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles, audit, reports
+- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles, audit, reports, settings
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -88,6 +88,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/admin/audit/[id]` | Audit detail |
 | GET | `/api/admin/reports/summary` | Report cards (`reports.read`, optional `from`/`to`) |
 | GET | `/api/admin/reports/[kind]/export` | CSV export (`users`\|`investments`\|`deposits`\|`withdrawals`\|`returns`\|`wallet`) |
+| GET/PATCH | `/api/admin/settings` | System settings (`settings.read` / `settings.update`) |
 | GET | `/api/admin/investments` | List investments |
 | GET | `/api/admin/investments/[id]` | Investment detail |
 | GET | `/api/admin/deposits` | List deposits (`deposits.read`) |
@@ -241,3 +242,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 21 design](docs/superpowers/specs/2026-09-20-chunk-21-rbac-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-21-rbac.md)
 - [Chunk 22 design](docs/superpowers/specs/2026-09-20-chunk-22-audit-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-22-audit.md)
 - [Chunk 23 design](docs/superpowers/specs/2026-09-20-chunk-23-reports-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-23-reports.md)
+- [Chunk 24 design](docs/superpowers/specs/2026-09-20-chunk-24-settings-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-24-settings.md)
