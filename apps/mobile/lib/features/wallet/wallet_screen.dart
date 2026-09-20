@@ -94,6 +94,11 @@ class _WalletScreenState extends State<WalletScreen> {
                         Navigator.of(context).pushNamed('/wallet/deposit'),
                     child: const Text('Deposit'),
                   ),
+                  FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/withdrawals'),
+                    child: const Text('Withdraw'),
+                  ),
                   const SizedBox(height: 24),
                   Text('Transactions', style: Theme.of(context).textTheme.titleLarge),
                   if (_txs.isEmpty) const Text('No transactions yet.'),

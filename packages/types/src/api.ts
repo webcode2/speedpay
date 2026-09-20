@@ -12,7 +12,8 @@ export type ApiErrorCode =
   | "VERIFICATION_INVALID_STATE"
   | "NOT_FOUND"
   | "KYC_REQUIRED"
-  | "INVALID_STATE";
+  | "INVALID_STATE"
+  | "INSUFFICIENT_BALANCE";
 
 export type ApiErrorBody = {
   code: ApiErrorCode;

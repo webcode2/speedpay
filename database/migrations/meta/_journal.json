@@ -78,6 +78,13 @@
       "when": 1789912200000,
       "tag": "0010_investment_accruals",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789912800000,
+      "tag": "0011_withdrawals",
+      "breakpoints": true
     }
   ]
 }

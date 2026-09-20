@@ -112,6 +112,18 @@ export const DEPOSIT_STATUSES = [
 
 export type DepositStatus = (typeof DEPOSIT_STATUSES)[number];
 
+export const WITHDRAWAL_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "PROCESSING",
+  "COMPLETED",
+  "REJECTED",
+  "FAILED",
+  "CANCELLED",
+] as const;
+
+export type WithdrawalStatus = (typeof WITHDRAWAL_STATUSES)[number];
+
 export const INVESTMENT_STATUSES = [
   "PENDING",
   "ACTIVE",

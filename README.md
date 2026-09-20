@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`, `/admin/withdrawals`
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -101,6 +101,15 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/admin/returns` | Eligible return materializations (`returns.read`) |
 | GET | `/api/admin/returns/[id]` | Preview calc + history |
 | POST | `/api/admin/returns/[id]/materialize` | Confirm → accrual + PENDING credit (`returns.calculate`) |
+| GET/POST | `/api/withdrawal-pin` | PIN status / set / change |
+| GET/POST | `/api/withdrawals` | List / create (PIN + VERIFIED payout) |
+| GET | `/api/withdrawals/[id]` | Detail |
+| POST | `/api/withdrawals/[id]/cancel` | Cancel PENDING (releases hold) |
+| GET | `/api/admin/withdrawals` | Admin queue |
+| GET | `/api/admin/withdrawals/[id]` | Admin detail |
+| POST | `/api/admin/withdrawals/[id]/approve` | Approve |
+| POST | `/api/admin/withdrawals/[id]/reject` | Reject + release hold |
+| POST | `/api/admin/withdrawals/[id]/process` | Mock bank complete |
 
 ## Admin projects API
 
@@ -197,3 +206,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 13 design](docs/superpowers/specs/2026-09-20-chunk-13-returns-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-13-returns.md)
 - [Chunk 14 design](docs/superpowers/specs/2026-09-20-chunk-14-returns-ui-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-14-returns-ui.md)
 - [Chunk 15 design](docs/superpowers/specs/2026-09-20-chunk-15-materialize-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-15-materialize.md)
+- [Chunk 16 design](docs/superpowers/specs/2026-09-20-chunk-16-withdrawals-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-16-withdrawals.md)

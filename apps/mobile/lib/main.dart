@@ -21,6 +21,8 @@ import 'features/returns/returns_screen.dart';
 import 'features/wallet/deposit_screen.dart';
 import 'features/wallet/wallet_screen.dart';
 import 'features/wallet/wallet_transaction_screen.dart';
+import 'features/withdrawals/withdrawal_pin_screen.dart';
+import 'features/withdrawals/withdrawals_screen.dart';
 
 String defaultApiBaseUrl() {
   const fromEnv = String.fromEnvironment('API_BASE_URL');
@@ -94,6 +96,8 @@ class SolarInvestmentApp extends StatelessWidget {
         },
         '/wallet': (_) => const WalletScreen(),
         '/wallet/deposit': (_) => const DepositScreen(),
+        '/withdrawals': (_) => const WithdrawalsScreen(),
+        '/withdrawals/pin': (_) => const WithdrawalPinScreen(),
         '/wallet/transaction': (context) {
           final id = ModalRoute.of(context)?.settings.arguments as String?;
           if (id == null || id.isEmpty) {

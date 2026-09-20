@@ -16,6 +16,8 @@ import { deposits } from "./deposits";
 import { investments } from "./investments";
 import { investmentLots } from "./investment-lots";
 import { investmentAccruals } from "./investment-accruals";
+import { withdrawalPins } from "./withdrawal-pins";
+import { withdrawals } from "./withdrawals";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -38,6 +40,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   deposits: many(deposits),
   investments: many(investments),
+  withdrawals: many(withdrawals),
+  withdrawalPin: one(withdrawalPins, {
+    fields: [users.id],
+    references: [withdrawalPins.userId],
+  }),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -265,3 +272,35 @@ export const investmentAccrualsRelations = relations(
     }),
   }),
 );
+
+export const withdrawalPinsRelations = relations(withdrawalPins, ({ one }) => ({
+  user: one(users, {
+    fields: [withdrawalPins.userId],
+    references: [users.id],
+  }),
+}));
+
+export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
+  user: one(users, {
+    fields: [withdrawals.userId],
+    references: [users.id],
+  }),
+  payoutAccount: one(payoutAccounts, {
+    fields: [withdrawals.payoutAccountId],
+    references: [payoutAccounts.id],
+  }),
+  walletTransaction: one(walletTransactions, {
+    fields: [withdrawals.walletTransactionId],
+    references: [walletTransactions.id],
+  }),
+  reviewedByAdmin: one(admins, {
+    fields: [withdrawals.reviewedBy],
+    references: [admins.id],
+    relationName: "withdrawalReviewedBy",
+  }),
+  processedByAdmin: one(admins, {
+    fields: [withdrawals.processedBy],
+    references: [admins.id],
+    relationName: "withdrawalProcessedBy",
+  }),
+}));
