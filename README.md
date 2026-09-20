@@ -200,7 +200,8 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | Script | Description |
 |--------|-------------|
 | `pnpm --filter @solar/web dev` | Start the Next.js dev server on port 3000 |
-| `pnpm --filter @solar/web test` | Run Vitest for `@solar/web` |
+| `pnpm --filter @solar/web test` | Run Vitest for `@solar/web` (unit + E2E; E2E skips if Postgres is down) |
+| `pnpm --filter @solar/web test:e2e` | Run in-process lifecycle E2E only (requires `docker compose up`, migrate, seed) |
 | `pnpm db:generate` | Generate Drizzle migrations from schema |
 | `pnpm db:migrate` | Apply Drizzle migrations to Postgres |
 | `pnpm db:seed` | Seed permissions, roles, SUPER_ADMIN, and settings |
@@ -249,3 +250,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 25 design](docs/superpowers/specs/2026-09-20-chunk-25-flutter-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-25-flutter.md)
 - [Chunk 26 design](docs/superpowers/specs/2026-09-20-chunk-26-investor-web-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-26-investor-web.md)
 - [Chunk 27 design](docs/superpowers/specs/2026-09-20-chunk-27-integrity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-27-integrity.md)
+- [Chunk 28 design](docs/superpowers/specs/2026-09-20-chunk-28-e2e-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-28-e2e.md)
