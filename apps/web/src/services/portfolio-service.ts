@@ -6,49 +6,19 @@ import {
   projects,
   walletTransactions,
 } from "@solar/database/schema";
+import { calculateInvestmentReturn } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
-import { parseRatePercent } from "@/services/marketplace-service";
-
-export function previewReturn(input: {
-  principal: number;
-  returnRate: string;
-  startAt: Date;
-  maturityAt: Date;
-  now?: Date;
-}) {
-  const rate = parseRatePercent(input.returnRate);
-  const expectedReturn = (input.principal * rate) / 100;
-  const maturityValue = input.principal + expectedReturn;
-  const now = input.now ?? new Date();
-  const totalMs = input.maturityAt.getTime() - input.startAt.getTime();
-  const elapsedMs = Math.min(
-    Math.max(0, now.getTime() - input.startAt.getTime()),
-    Math.max(totalMs, 1),
-  );
-  const percentageComplete =
-    totalMs <= 0 ? 100 : Math.min(100, (elapsedMs / totalMs) * 100);
-  // Linear preview until C13 engine
-  const accruedReturn = (expectedReturn * percentageComplete) / 100;
-  const currentValue = input.principal + accruedReturn;
-  return {
-    expectedReturn,
-    maturityValue,
-    accruedReturn,
-    currentValue,
-    percentageComplete,
-    isMature: now >= input.maturityAt,
-  };
-}
 
 function toListItem(
   inv: typeof investments.$inferSelect,
   packageName: string,
   projectName: string,
 ) {
-  const preview = previewReturn({
+  const calc = calculateInvestmentReturn({
     principal: inv.principal,
     returnRate: inv.returnRate,
+    returnType: inv.returnType,
     startAt: inv.startAt,
     maturityAt: inv.maturityAt,
   });
@@ -64,11 +34,12 @@ function toListItem(
     packageId: inv.packageId,
     packageName,
     projectName,
-    expectedReturn: preview.expectedReturn,
-    maturityValue: preview.maturityValue,
-    currentValue: preview.currentValue,
-    percentageComplete: preview.percentageComplete,
-    isMature: preview.isMature,
+    expectedReturn: calc.expectedReturn,
+    maturityValue: calc.maturityValue,
+    currentValue: calc.currentValue,
+    accruedReturn: calc.accruedReturn,
+    percentageComplete: calc.percentageComplete,
+    isMature: calc.isMature,
     createdAt: inv.createdAt,
   };
 }
@@ -90,9 +61,7 @@ export async function listInvestments(userId: string) {
     .where(eq(investments.userId, userId))
     .orderBy(desc(investments.createdAt));
 
-  return rows.map((r) =>
-    toListItem(r.inv, r.packageName, r.projectName),
-  );
+  return rows.map((r) => toListItem(r.inv, r.packageName, r.projectName));
 }
 
 export async function getInvestment(userId: string, id: string) {
@@ -130,9 +99,10 @@ export async function getInvestment(userId: string, id: string) {
     )
     .orderBy(desc(walletTransactions.createdAt));
 
-  const preview = previewReturn({
+  const returns = calculateInvestmentReturn({
     principal: row.inv.principal,
     returnRate: row.inv.returnRate,
+    returnType: row.inv.returnType,
     startAt: row.inv.startAt,
     maturityAt: row.inv.maturityAt,
   });
@@ -147,23 +117,11 @@ export async function getInvestment(userId: string, id: string) {
       createdAt: l.createdAt,
     })),
     timeline: [
-      {
-        key: "created",
-        label: "Purchased",
-        at: row.inv.createdAt,
-      },
-      {
-        key: "start",
-        label: "Start",
-        at: row.inv.startAt,
-      },
-      {
-        key: "maturity",
-        label: "Maturity",
-        at: row.inv.maturityAt,
-      },
+      { key: "created", label: "Purchased", at: row.inv.createdAt },
+      { key: "start", label: "Start", at: row.inv.startAt },
+      { key: "maturity", label: "Maturity", at: row.inv.maturityAt },
     ],
-    returns: preview,
+    returns,
     transactions: txs.map((t) => ({
       id: t.id,
       type: t.type,
@@ -173,5 +131,17 @@ export async function getInvestment(userId: string, id: string) {
       currency: t.currency,
       createdAt: t.createdAt,
     })),
+  };
+}
+
+export async function getInvestmentReturns(userId: string, id: string) {
+  const detail = await getInvestment(userId, id);
+  return {
+    investmentId: detail.id,
+    principal: detail.principal,
+    ...detail.returns,
+    startAt: detail.startAt,
+    maturityAt: detail.maturityAt,
+    status: detail.status,
   };
 }

@@ -1,23 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { previewReturn } from "./portfolio-service";
+import { calculateInvestmentReturn } from "@/calculations/investment-return";
 
-describe("previewReturn", () => {
-  it("computes expected and accrued linearly", () => {
-    const start = new Date("2026-01-01T00:00:00.000Z");
-    const maturity = new Date("2026-01-11T00:00:00.000Z");
-    const mid = new Date("2026-01-06T00:00:00.000Z");
-    const r = previewReturn({
-      principal: 100000,
-      returnRate: "10",
-      startAt: start,
-      maturityAt: maturity,
-      now: mid,
+describe("portfolio uses return engine", () => {
+  it("exposes engine outputs used by portfolio", () => {
+    const r = calculateInvestmentReturn({
+      principal: 50_000,
+      startAt: new Date("2026-01-01T00:00:00.000Z"),
+      maturityAt: new Date("2026-02-01T00:00:00.000Z"),
+      returnType: "FIXED_RETURN",
+      returnRate: "20",
+      currentTime: new Date("2026-01-01T00:00:00.000Z"),
     });
-    expect(r.expectedReturn).toBe(10000);
-    expect(r.maturityValue).toBe(110000);
-    expect(r.percentageComplete).toBe(50);
-    expect(r.accruedReturn).toBe(5000);
-    expect(r.currentValue).toBe(105000);
-    expect(r.isMature).toBe(false);
+    expect(r.expectedReturn).toBe(10_000);
+    expect(r.maturityValue).toBe(60_000);
   });
 });

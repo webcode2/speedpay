@@ -131,7 +131,8 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/api/investments` | My investments |
-| GET | `/api/investments/[id]` | Detail, timeline, return preview, linked txs |
+| GET | `/api/investments/[id]` | Detail, timeline, return engine output, linked txs |
+| GET | `/api/investments/[id]/returns` | On-demand return calculation |
 
 ## Wallet API (investor)
 
@@ -170,6 +171,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - KYC documents via `ObjectStorage` (local or R2)
 - Payout accounts require KYC approval and staff review before `VERIFIED`
 - Wallet balances are derived from immutable ledger entries (no client-side mutation)
+- Investment returns calculated on-demand via `calculations/investment-return.ts` (no cron)
 - Financial calculations will be implemented server-side later
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
@@ -187,3 +189,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 10 design](docs/superpowers/specs/2026-09-20-chunk-10-deposits-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-10-deposits.md)
 - [Chunk 11 design](docs/superpowers/specs/2026-09-20-chunk-11-purchase-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-11-purchase.md)
 - [Chunk 12 design](docs/superpowers/specs/2026-09-20-chunk-12-portfolio-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-12-portfolio.md)
+- [Chunk 13 design](docs/superpowers/specs/2026-09-20-chunk-13-returns-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-13-returns.md)
