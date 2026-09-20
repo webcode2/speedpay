@@ -36,7 +36,7 @@ pnpm --filter @solar/web dev
 | `pnpm --filter @solar/web dev` | Start the Next.js dev server on port 3000 |
 | `pnpm --filter @solar/web test` | Run Vitest for `@solar/web` |
 | `pnpm db:migrate` | Apply Drizzle migrations to Postgres |
-| `pnpm db:seed` | Seed `system_settings` and related data |
+| `pnpm db:seed` | Run seed stub (no-op in Chunk 01) |
 
 ## Architecture notes
 
