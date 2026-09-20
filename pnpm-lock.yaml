@@ -27,6 +27,9 @@ importers:
       '@solar/config':
         specifier: workspace:*
         version: link:../packages/config
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.4
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
@@ -523,6 +526,9 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  '@types/node@22.20.4':
+    resolution: {integrity: sha512-zJRE40jpHtKqE/C4fgHrAKQLJuSpzEnP9ff9Y7YtoR3Wd2pwqzlekDeEuUQXjRd+QCYnVnNwuJYmhdk9XV8gvA==}
+
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
 
@@ -715,6 +721,9 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   which@4.0.0:
     resolution: {integrity: sha512-GlaYyEb07DPxYCKhKzplCWBJtvxZcZMrL+4UkrTSJHHPyZU4mYYTv3qaOe77H7EODLSSopAUFAc6W8U4yqvscg==}
@@ -968,6 +977,10 @@ snapshots:
   '@turbo/windows-arm64@2.11.2':
     optional: true
 
+  '@types/node@22.20.4':
+    dependencies:
+      undici-types: 6.21.0
+
   buffer-from@1.1.2: {}
 
   debug@4.4.3:
@@ -1132,6 +1145,8 @@ snapshots:
       '@turbo/windows-arm64': 2.11.2
 
   typescript@5.9.3: {}
+
+  undici-types@6.21.0: {}
 
   which@4.0.0:
     dependencies:
