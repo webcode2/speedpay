@@ -2,9 +2,7 @@ import { apiSuccess, handleRouteError } from "@/auth/http";
 import { getBearerOrCookieToken } from "@/auth/request";
 import { resolveSession } from "@/auth/session";
 import { AppError } from "@/lib/app-error";
-import { getInvestmentReturnDetail } from "@/services/returns-service";
-
-type Params = { params: Promise<{ id: string }> };
+import { getReturnsSummary } from "@/services/returns-service";
 
 async function requireUser(request: Request) {
   const token = await getBearerOrCookieToken(request);
@@ -14,13 +12,10 @@ async function requireUser(request: Request) {
   return resolved.user;
 }
 
-export async function GET(request: Request, { params }: Params) {
+export async function GET(request: Request) {
   try {
     const user = await requireUser(request);
-    const { id } = await params;
-    return apiSuccess({
-      returns: await getInvestmentReturnDetail(user.id, id),
-    });
+    return apiSuccess({ returns: await getReturnsSummary(user.id) });
   } catch (error) {
     return handleRouteError(error);
   }

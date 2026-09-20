@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calculateInvestmentReturn } from "./investment-return";
+import {
+  buildReturnSeries,
+  calculateInvestmentReturn,
+  calculateTodayReturn,
+} from "./investment-return";
 
 describe("calculateInvestmentReturn", () => {
   const start = new Date("2026-01-01T00:00:00.000Z");
@@ -77,5 +81,37 @@ describe("calculateInvestmentReturn", () => {
         returnRate: 5,
       }),
     ).toThrow(/maturityAt/);
+  });
+
+  it("buildReturnSeries returns ordered points", () => {
+    const series = buildReturnSeries(
+      {
+        principal: 100_000,
+        startAt: start,
+        maturityAt: maturity,
+        returnType: "FIXED_RETURN",
+        returnRate: 10,
+        currentTime: new Date("2026-01-06T00:00:00.000Z"),
+      },
+      5,
+    );
+    expect(series).toHaveLength(5);
+    expect(series[0].accruedReturn).toBe(0);
+    expect(series[4].accruedReturn).toBe(5_000);
+  });
+
+  it("calculateTodayReturn is non-negative within a day", () => {
+    const todayReturn = calculateTodayReturn(
+      {
+        principal: 100_000,
+        startAt: start,
+        maturityAt: maturity,
+        returnType: "FIXED_RETURN",
+        returnRate: 10,
+      },
+      new Date("2026-01-03T12:00:00.000Z"),
+    );
+    expect(todayReturn).toBeGreaterThan(0);
+    expect(todayReturn).toBeLessThanOrEqual(10_000);
   });
 });

@@ -132,7 +132,8 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 |---|---|---|
 | GET | `/api/investments` | My investments |
 | GET | `/api/investments/[id]` | Detail, timeline, return engine output, linked txs |
-| GET | `/api/investments/[id]/returns` | On-demand return calculation |
+| GET | `/api/investments/[id]/returns` | On-demand return + today + chart series |
+| GET | `/api/returns` | Portfolio return summary (Flutter Returns hub) |
 
 ## Wallet API (investor)
 
@@ -190,3 +191,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 11 design](docs/superpowers/specs/2026-09-20-chunk-11-purchase-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-11-purchase.md)
 - [Chunk 12 design](docs/superpowers/specs/2026-09-20-chunk-12-portfolio-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-12-portfolio.md)
 - [Chunk 13 design](docs/superpowers/specs/2026-09-20-chunk-13-returns-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-13-returns.md)
+- [Chunk 14 design](docs/superpowers/specs/2026-09-20-chunk-14-returns-ui-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-14-returns-ui.md)

@@ -104,3 +104,62 @@ export function calculateInvestmentReturn(
     returnType,
   };
 }
+
+export type ReturnSeriesPoint = {
+  at: string;
+  accruedReturn: number;
+  currentValue: number;
+};
+
+/** Evenly spaced on-demand series from start → min(now, maturity). Not persisted. */
+export function buildReturnSeries(
+  input: InvestmentReturnInput,
+  pointCount = 24,
+): ReturnSeriesPoint[] {
+  const now = input.currentTime ?? new Date();
+  const endMs = Math.min(now.getTime(), input.maturityAt.getTime());
+  const startMs = input.startAt.getTime();
+  const count = Math.max(2, Math.min(60, Math.floor(pointCount)));
+
+  if (endMs <= startMs) {
+    const r = calculateInvestmentReturn({ ...input, currentTime: input.startAt });
+    return [
+      {
+        at: input.startAt.toISOString(),
+        accruedReturn: r.accruedReturn,
+        currentValue: r.currentValue,
+      },
+    ];
+  }
+
+  const points: ReturnSeriesPoint[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = startMs + ((endMs - startMs) * i) / (count - 1);
+    const at = new Date(t);
+    const r = calculateInvestmentReturn({ ...input, currentTime: at });
+    points.push({
+      at: at.toISOString(),
+      accruedReturn: r.accruedReturn,
+      currentValue: r.currentValue,
+    });
+  }
+  return points;
+}
+
+/** Accrued since start of UTC day (or since startAt if later). */
+export function calculateTodayReturn(
+  input: Omit<InvestmentReturnInput, "currentTime">,
+  now = new Date(),
+): number {
+  const dayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  const baselineAt =
+    dayStart.getTime() < input.startAt.getTime() ? input.startAt : dayStart;
+  const atStart = calculateInvestmentReturn({
+    ...input,
+    currentTime: baselineAt,
+  });
+  const atNow = calculateInvestmentReturn({ ...input, currentTime: now });
+  return roundMoney(atNow.accruedReturn - atStart.accruedReturn);
+}

@@ -133,15 +133,3 @@ export async function getInvestment(userId: string, id: string) {
     })),
   };
 }
-
-export async function getInvestmentReturns(userId: string, id: string) {
-  const detail = await getInvestment(userId, id);
-  return {
-    investmentId: detail.id,
-    principal: detail.principal,
-    ...detail.returns,
-    startAt: detail.startAt,
-    maturityAt: detail.maturityAt,
-    status: detail.status,
-  };
-}

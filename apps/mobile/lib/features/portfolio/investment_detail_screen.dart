@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/api/api_client.dart';
 import '../../core/auth/session_store.dart';
 import '../../main.dart';
+import '../returns/return_series_chart.dart';
 
 class InvestmentDetailScreen extends StatefulWidget {
   const InvestmentDetailScreen({super.key, required this.investmentId});
@@ -16,6 +17,7 @@ class InvestmentDetailScreen extends StatefulWidget {
 
 class _InvestmentDetailScreenState extends State<InvestmentDetailScreen> {
   Map<String, dynamic>? _inv;
+  Map<String, dynamic>? _returnsDetail;
   String? _error;
   bool _loading = true;
 
@@ -34,8 +36,14 @@ class _InvestmentDetailScreenState extends State<InvestmentDetailScreen> {
         '/api/investments/${widget.investmentId}',
         auth: true,
       );
+      final returnsData = await client.get(
+        '/api/investments/${widget.investmentId}/returns',
+        auth: true,
+      );
       setState(() {
         _inv = Map<String, dynamic>.from(data['investment'] as Map);
+        _returnsDetail =
+            Map<String, dynamic>.from(returnsData['returns'] as Map);
         _loading = false;
       });
     } on ApiException catch (e) {
@@ -49,10 +57,14 @@ class _InvestmentDetailScreenState extends State<InvestmentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final inv = _inv;
-    final returns = inv?['returns'] as Map?;
+    final returns = _returnsDetail ?? (inv?['returns'] as Map?);
     final timeline = (inv?['timeline'] as List?) ?? [];
     final txs = (inv?['transactions'] as List?) ?? [];
     final lots = (inv?['lots'] as List?) ?? [];
+    final series = ((_returnsDetail?['series'] as List?) ?? [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(inv?['packageName'] as String? ?? 'Investment')),
@@ -72,14 +84,21 @@ class _InvestmentDetailScreenState extends State<InvestmentDetailScreen> {
                   const SizedBox(height: 16),
                   Text('Returns', style: Theme.of(context).textTheme.titleLarge),
                   if (returns != null) ...[
+                    Text('Today: ${returns['todayReturn'] ?? '—'}'),
+                    Text('Accrued: ${returns['accruedReturn']}'),
                     Text('Expected: ${returns['expectedReturn']}'),
-                    Text('Accrued (preview): ${returns['accruedReturn']}'),
                     Text('Current value: ${returns['currentValue']}'),
                     Text('Maturity value: ${returns['maturityValue']}'),
                     Text(
                       'Progress: ${(returns['percentageComplete'] as num?)?.toStringAsFixed(1)}%',
                     ),
                     Text('Mature: ${returns['isMature']}'),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Performance',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    ReturnSeriesChart(series: series),
                   ],
                   const SizedBox(height: 16),
                   Text('Timeline', style: Theme.of(context).textTheme.titleLarge),
