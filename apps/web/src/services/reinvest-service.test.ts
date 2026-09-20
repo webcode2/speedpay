@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { remainingReinvestable } from "./reinvest-service";
+import { canReinvestPreview, remainingReinvestable } from "./reinvest-service";
 
 describe("remainingReinvestable", () => {
   it("returns full when nothing reinvested", () => {
@@ -12,5 +12,16 @@ describe("remainingReinvestable", () => {
 
   it("floors at zero", () => {
     expect(remainingReinvestable(600_000, 700_000)).toBe(0);
+  });
+});
+
+describe("canReinvestPreview", () => {
+  it("allows matured with remaining balance", () => {
+    expect(canReinvestPreview({ status: "MATURED", remaining: 1 })).toBe(true);
+  });
+
+  it("blocks zero remaining or non-matured", () => {
+    expect(canReinvestPreview({ status: "MATURED", remaining: 0 })).toBe(false);
+    expect(canReinvestPreview({ status: "ACTIVE", remaining: 100 })).toBe(false);
   });
 });

@@ -14,6 +14,8 @@ import {
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { isPackageWithinWindow } from "@/lib/package-window";
+import { validateLotCount } from "@/lib/integrity";
 import { availableLots } from "@/services/admin-package-service";
 import { quoteInvestment } from "@/services/marketplace-service";
 import { safeNotify } from "@/services/notification-service";
@@ -22,10 +24,7 @@ function isWithinWindow(pkg: {
   availableFrom: Date | null;
   availableUntil: Date | null;
 }) {
-  const now = new Date();
-  if (pkg.availableFrom && pkg.availableFrom > now) return false;
-  if (pkg.availableUntil && pkg.availableUntil < now) return false;
-  return true;
+  return isPackageWithinWindow(pkg);
 }
 
 export function remainingReinvestable(
@@ -33,6 +32,14 @@ export function remainingReinvestable(
   alreadyReinvested: number,
 ): number {
   return Math.max(0, maturityValue - alreadyReinvested);
+}
+
+/** Pure reinvest eligibility after maturity preview numbers are known. */
+export function canReinvestPreview(input: {
+  status: string;
+  remaining: number;
+}): boolean {
+  return input.remaining > 0 && input.status === "MATURED";
 }
 
 export async function listReinvestments(userId: string) {
@@ -87,7 +94,10 @@ export async function getReinvestPreview(userId: string, parentId: string) {
     maturityValue: maturity.maturityValue,
     alreadyReinvested: already,
     remaining,
-    canReinvest: remaining > 0 && parent.status === "MATURED",
+    canReinvest: canReinvestPreview({
+      remaining,
+      status: parent.status,
+    }),
   };
 }
 
@@ -101,7 +111,7 @@ export async function createReinvestment(input: {
   const { userId, parentInvestmentId, packageId, lotCount, idempotencyKey } =
     input;
 
-  if (!Number.isInteger(lotCount) || lotCount < 1) {
+  if (validateLotCount(lotCount) !== "OK") {
     throw new AppError(
       "VALIDATION_ERROR",
       "lotCount must be a positive integer.",

@@ -217,6 +217,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - Investment returns calculated on-demand via `calculations/investment-return.ts` (no cron)
 - Admin may materialize accruals into `investment_accruals` + wallet PENDING (no cron)
 - Financial calculations will be implemented server-side later
+- Integrity gates: auth token parsing, session liveness, ownership, lot/deposit amounts, package windows, idempotency replay, withdrawal/maturity/reinvest submit checks (`src/lib/integrity.ts`)
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
 ## Docs
@@ -247,3 +248,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 24 design](docs/superpowers/specs/2026-09-20-chunk-24-settings-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-24-settings.md)
 - [Chunk 25 design](docs/superpowers/specs/2026-09-20-chunk-25-flutter-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-25-flutter.md)
 - [Chunk 26 design](docs/superpowers/specs/2026-09-20-chunk-26-investor-web-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-26-investor-web.md)
+- [Chunk 27 design](docs/superpowers/specs/2026-09-20-chunk-27-integrity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-27-integrity.md)

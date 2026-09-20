@@ -6,6 +6,7 @@ import {
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { isPackageWithinWindow } from "@/lib/package-window";
 import { availableLots } from "@/services/admin-package-service";
 
 export function parseMoney(value: string): number {
@@ -57,10 +58,7 @@ function isWithinWindow(pkg: {
   availableFrom: Date | null;
   availableUntil: Date | null;
 }) {
-  const now = new Date();
-  if (pkg.availableFrom && pkg.availableFrom > now) return false;
-  if (pkg.availableUntil && pkg.availableUntil < now) return false;
-  return true;
+  return isPackageWithinWindow(pkg);
 }
 
 function publicView(

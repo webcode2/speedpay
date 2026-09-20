@@ -29,8 +29,9 @@ export function canSubmitWithdrawal(input: {
     "SUSPENDED",
     "CLOSED",
   ]);
-  if (input.userStatus !== "KYC_APPROVED") return "KYC_REQUIRED";
+  // Blocked statuses must win even if the user was previously KYC-approved.
   if (BLOCKED.has(input.userStatus)) return "WITHDRAWAL_BLOCKED";
+  if (input.userStatus !== "KYC_APPROVED") return "KYC_REQUIRED";
   if (!Number.isInteger(input.amount) || input.amount < minAmount) {
     return "INVALID_AMOUNT";
   }

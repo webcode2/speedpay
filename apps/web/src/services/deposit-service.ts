@@ -3,6 +3,7 @@ import { deposits } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import { getPaymentProvider } from "@/payments";
+import { validateDepositAmount } from "@/lib/integrity";
 import { safeNotify } from "@/services/notification-service";
 import { postLedgerEntry } from "@/services/wallet-service";
 import { getSetting, getSettingNumber } from "@/settings/settings";
@@ -10,7 +11,7 @@ import { getSetting, getSettingNumber } from "@/settings/settings";
 export async function createDeposit(userId: string, amount: number) {
   const minDeposit = await getSettingNumber("deposit.min_amount", 100);
   const currency = await getSetting("app.currency", "NGN");
-  if (!Number.isInteger(amount) || amount < minDeposit) {
+  if (validateDepositAmount(amount, minDeposit) !== "OK") {
     throw new AppError(
       "VALIDATION_ERROR",
       `amount must be an integer >= ${minDeposit} (minor units).`,

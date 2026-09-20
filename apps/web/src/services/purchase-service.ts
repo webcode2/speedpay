@@ -12,19 +12,11 @@ import {
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import { isPackageWithinWindow } from "@/lib/package-window";
+import { validateLotCount } from "@/lib/integrity";
 import { availableLots } from "@/services/admin-package-service";
 import { quoteInvestment } from "@/services/marketplace-service";
 import { safeNotify } from "@/services/notification-service";
-
-function isWithinWindow(pkg: {
-  availableFrom: Date | null;
-  availableUntil: Date | null;
-}) {
-  const now = new Date();
-  if (pkg.availableFrom && pkg.availableFrom > now) return false;
-  if (pkg.availableUntil && pkg.availableUntil < now) return false;
-  return true;
-}
 
 export async function purchasePackage(input: {
   userId: string;
@@ -34,7 +26,7 @@ export async function purchasePackage(input: {
 }) {
   const { userId, packageId, lotCount, idempotencyKey } = input;
 
-  if (!Number.isInteger(lotCount) || lotCount < 1) {
+  if (validateLotCount(lotCount) !== "OK") {
     throw new AppError("VALIDATION_ERROR", "lotCount must be a positive integer.", 400);
   }
 
@@ -93,7 +85,7 @@ export async function purchasePackage(input: {
     if (pkg.status !== "OPEN") {
       throw new AppError("INVALID_STATE", "Package is not open for investment.", 400);
     }
-    if (!isWithinWindow(pkg)) {
+    if (!isPackageWithinWindow(pkg)) {
       throw new AppError(
         "INVALID_STATE",
         "Package is outside its availability window.",
@@ -102,21 +94,27 @@ export async function purchasePackage(input: {
     }
 
     const available = availableLots(pkg);
-    if (lotCount < pkg.minimumLots) {
+    const allocation = assertCanAllocateLots({
+      lotCount,
+      minimumLots: pkg.minimumLots,
+      maximumLots: pkg.maximumLots,
+      available,
+    });
+    if (allocation === "MIN") {
       throw new AppError(
         "VALIDATION_ERROR",
         `Minimum lots is ${pkg.minimumLots}.`,
         400,
       );
     }
-    if (pkg.maximumLots != null && lotCount > pkg.maximumLots) {
+    if (allocation === "MAX") {
       throw new AppError(
         "VALIDATION_ERROR",
         `Maximum lots is ${pkg.maximumLots}.`,
         400,
       );
     }
-    if (lotCount > available) {
+    if (allocation === "OVERSELL") {
       throw new AppError(
         "INVALID_STATE",
         `Only ${available} lots available.`,

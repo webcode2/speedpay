@@ -23,4 +23,26 @@ describe("assertCanAllocateLots", () => {
       }),
     ).toBe("OVERSELL");
   });
+
+  it("rejects below minimum", () => {
+    expect(
+      assertCanAllocateLots({
+        lotCount: 1,
+        minimumLots: 3,
+        maximumLots: null,
+        available: 10,
+      }),
+    ).toBe("MIN");
+  });
+
+  it("rejects above maximum", () => {
+    expect(
+      assertCanAllocateLots({
+        lotCount: 8,
+        minimumLots: 1,
+        maximumLots: 5,
+        available: 10,
+      }),
+    ).toBe("MAX");
+  });
 });
