@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: solar-investment-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: solar
+      POSTGRES_PASSWORD: solar
+      POSTGRES_DB: solar_investment
+    volumes:
+      - solar_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solar -d solar_investment"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  solar_pg_data:
