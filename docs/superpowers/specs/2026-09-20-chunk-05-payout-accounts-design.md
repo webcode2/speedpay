@@ -79,10 +79,10 @@ Add and assign to `SUPER_ADMIN` for Chunk 05 (other roles can gain these permiss
 2. **Create:** status `PENDING`; if user has no other non-deleted accounts, set `is_default = true`.
 3. **Edit:** owner only; if previous status was `VERIFIED`, set `PENDING`, clear `reviewed_at` / `reviewed_by` / `rejection_reason`.
 4. **Set default:** owner only; clear `is_default` on other non-deleted rows in same transaction; audit.
-5. **Remove:** soft-delete; if deleted row was default, leave user with no default (they must set another) or auto-promote another verified account if present — **choose: clear default only** (simplest; client prompts set-default).
+5. **Remove:** soft-delete; if deleted row was default, clear default only (no auto-promote); client prompts the user to set another default.
 6. **Approve:** admin + `payouts.approve`; only from `PENDING` → `VERIFIED`; audit.
 7. **Reject:** admin + `payouts.reject`; only from `PENDING` → `REJECTED` with non-empty `reason`; audit.
-8. **List responses:** mask `account_number` to last 4 characters for investor and admin list views; full number only on detail if needed for staff review (admin detail may show full number).
+8. **List responses:** mask `account_number` to last 4 for investor lists; admin detail shows the full account number for review.
 
 ---
 
