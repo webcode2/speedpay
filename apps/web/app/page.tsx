@@ -25,7 +25,7 @@ export default async function HomePage() {
         Platform foundation
       </h1>
       <p className="text-slate-400">
-        Chunk 01 — Next.js, PostgreSQL, and Drizzle are wired end-to-end.
+        Chunk 03 — investor auth is live. Sign in to open your dashboard.
       </p>
       <p
         className={
@@ -36,6 +36,17 @@ export default async function HomePage() {
       >
         {connected ? "Connected" : "Database unavailable"}
       </p>
+      <div className="flex gap-4 text-sm">
+        <a className="text-emerald-400" href="/login">
+          Sign in
+        </a>
+        <a className="text-emerald-400" href="/register">
+          Register
+        </a>
+        <a className="text-emerald-400" href="/dashboard">
+          Dashboard
+        </a>
+      </div>
     </main>
   );
 }

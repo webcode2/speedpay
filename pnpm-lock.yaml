@@ -23,6 +23,9 @@ importers:
       '@solar/types':
         specifier: workspace:*
         version: link:../../packages/types
+      argon2:
+        specifier: ^0.41.1
+        version: 0.41.1
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
