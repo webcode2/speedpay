@@ -10,7 +10,9 @@ export type ApiErrorCode =
   | "FORBIDDEN"
   | "PROFILE_INCOMPLETE"
   | "VERIFICATION_INVALID_STATE"
-  | "NOT_FOUND";
+  | "NOT_FOUND"
+  | "KYC_REQUIRED"
+  | "INVALID_STATE";
 
 export type ApiErrorBody = {
   code: ApiErrorCode;

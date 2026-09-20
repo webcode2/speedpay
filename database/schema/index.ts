@@ -12,5 +12,6 @@ export { adminRoles } from "./admin-roles";
 export { rolePermissions } from "./role-permissions";
 export { verificationRequests } from "./verification-requests";
 export { verificationDocuments } from "./verification-documents";
+export { payoutAccounts } from "./payout-accounts";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";

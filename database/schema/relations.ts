@@ -3,6 +3,7 @@ import { adminRoles } from "./admin-roles";
 import { adminSessions } from "./admin-sessions";
 import { admins } from "./admins";
 import { permissions } from "./permissions";
+import { payoutAccounts } from "./payout-accounts";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -18,6 +19,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   sessions: many(userSessions),
   verificationRequests: many(verificationRequests),
+  payoutAccounts: many(payoutAccounts),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -101,3 +103,14 @@ export const verificationDocumentsRelations = relations(
     }),
   }),
 );
+
+export const payoutAccountsRelations = relations(payoutAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [payoutAccounts.userId],
+    references: [users.id],
+  }),
+  reviewer: one(admins, {
+    fields: [payoutAccounts.reviewedBy],
+    references: [admins.id],
+  }),
+}));

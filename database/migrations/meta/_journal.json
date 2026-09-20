@@ -29,6 +29,13 @@
       "when": 1789907156188,
       "tag": "0003_careless_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789908671678,
+      "tag": "0004_chunky_black_widow",
+      "breakpoints": true
     }
   ]
 }

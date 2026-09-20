@@ -39,3 +39,11 @@ export const VERIFICATION_DOCUMENT_TYPES = [
 
 export type VerificationDocumentType =
   (typeof VERIFICATION_DOCUMENT_TYPES)[number];
+
+export const PAYOUT_ACCOUNT_STATUSES = [
+  "PENDING",
+  "VERIFIED",
+  "REJECTED",
+] as const;
+
+export type PayoutAccountStatus = (typeof PAYOUT_ACCOUNT_STATUSES)[number];

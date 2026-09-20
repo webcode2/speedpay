@@ -17,6 +17,9 @@ describe("seed catalog", () => {
         "kyc.read",
         "kyc.approve",
         "kyc.reject",
+        "payouts.read",
+        "payouts.approve",
+        "payouts.reject",
         "projects.create",
         "projects.update",
         "projects.publish",
@@ -41,7 +44,7 @@ describe("seed catalog", () => {
         "audit.read",
       ]),
     );
-    expect(codes).toHaveLength(28);
+    expect(codes).toHaveLength(31);
   });
 
   it("includes seven roles", () => {
