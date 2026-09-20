@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AdminNav } from "../_components/admin-nav";
 
 type Item = {
   id: string;
@@ -37,23 +38,8 @@ export default function AdminPayoutsQueuePage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Payout accounts</h1>
-        <div className="flex gap-3 text-sm">
-          <Link className="text-emerald-400" href="/admin/projects">
-            Projects
-          </Link>
-          <Link className="text-emerald-400" href="/admin/returns">
-            Returns
-          </Link>
-          <Link className="text-emerald-400" href="/admin/kyc">
-            KYC
-          </Link>
-          <Link className="text-emerald-400" href="/admin/login">
-            Staff login
-          </Link>
-        </div>
-      </div>
+      <h1 className="text-3xl font-semibold">Payout accounts</h1>
+      <AdminNav />
       <select
         className="w-fit rounded border border-slate-600 bg-slate-900 px-3 py-2"
         value={status}
@@ -83,9 +69,6 @@ export default function AdminPayoutsQueuePage() {
             </Link>
           </li>
         ))}
-        {items.length === 0 ? (
-          <li className="px-4 py-6 text-sm text-slate-500">No accounts</li>
-        ) : null}
       </ul>
     </main>
   );

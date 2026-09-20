@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AdminNav } from "../_components/admin-nav";
 
 type Item = {
   id: string;
@@ -36,26 +37,8 @@ export default function AdminReturnsPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Return materialization</h1>
-        <div className="flex gap-3 text-sm">
-          <Link className="text-emerald-400" href="/admin/returns">
-            Returns
-          </Link>
-          <Link className="text-emerald-400" href="/admin/maturities">
-            Maturities
-          </Link>
-          <Link className="text-emerald-400" href="/admin/withdrawals">
-            Withdrawals
-          </Link>
-          <Link className="text-emerald-400" href="/admin/payouts">
-            Payouts
-          </Link>
-          <Link className="text-emerald-400" href="/admin/kyc">
-            KYC
-          </Link>
-        </div>
-      </div>
+      <h1 className="text-3xl font-semibold">Return materialization</h1>
+      <AdminNav />
       <p className="text-sm text-slate-400">
         Eligible ACTIVE investments with unrealized accrued return (credits PENDING).
       </p>

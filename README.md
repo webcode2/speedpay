@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`, `/admin/withdrawals`, `/admin/maturities`
+- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -81,6 +81,14 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET/PATCH | `/api/profile` | Investor profile |
 | GET/POST | `/api/verification` | Status / submit for review |
 | POST | `/api/verification/documents` | Multipart document upload |
+| GET | `/api/admin/dashboard` | Ops counts |
+| GET | `/api/admin/users` | List/search users (`users.read`) |
+| GET | `/api/admin/users/[id]` | User detail |
+| GET | `/api/admin/investments` | List investments |
+| GET | `/api/admin/investments/[id]` | Investment detail |
+| GET | `/api/admin/deposits` | List deposits |
+| GET | `/api/admin/deposits/[id]` | Deposit detail |
+| GET | `/api/admin/reinvestments` | List reinvestments |
 | GET | `/api/admin/kyc` | Staff queue |
 | GET | `/api/admin/kyc/[id]` | Case detail |
 | POST | `/api/admin/kyc/[id]/approve` | Approve |
@@ -220,3 +228,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 17 design](docs/superpowers/specs/2026-09-20-chunk-17-maturity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-17-maturity.md)
 - [Chunk 18 design](docs/superpowers/specs/2026-09-20-chunk-18-reinvest-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-18-reinvest.md)
 - [Chunk 19 design](docs/superpowers/specs/2026-09-20-chunk-19-notifications-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-19-notifications.md)
+- [Chunk 20 design](docs/superpowers/specs/2026-09-20-chunk-20-admin-ops-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-20-admin-ops.md)

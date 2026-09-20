@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AdminNav } from "../_components/admin-nav";
 
 type Item = {
   id: string;
@@ -36,28 +37,17 @@ export default function AdminProjectsPage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold">Projects</h1>
-        <div className="flex gap-3 text-sm">
-          <Link className="text-emerald-400" href="/admin/packages">
-            Packages
-          </Link>
-          <Link className="text-emerald-400" href="/admin/projects/new">
-            New
-          </Link>
-          <Link className="text-emerald-400" href="/admin/kyc">
-            KYC
-          </Link>
-          <Link className="text-emerald-400" href="/admin/payouts">
-            Payouts
-          </Link>
-        </div>
+        <Link className="text-sm text-emerald-400" href="/admin/projects/new">
+          New
+        </Link>
       </div>
+      <AdminNav />
       <select
         className="w-fit rounded border border-slate-600 bg-slate-900 px-3 py-2"
         value={status}
         onChange={(e) => {
-          const next = e.target.value;
-          setStatus(next);
-          void load(next);
+          setStatus(e.target.value);
+          void load(e.target.value);
         }}
       >
         <option value="">All</option>
@@ -83,9 +73,6 @@ export default function AdminProjectsPage() {
             </Link>
           </li>
         ))}
-        {items.length === 0 ? (
-          <li className="px-4 py-6 text-sm text-slate-500">No projects</li>
-        ) : null}
       </ul>
     </main>
   );
