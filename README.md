@@ -23,7 +23,8 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc` (seeded `admin@solar.local` / `ChangeMeNow!123`)
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts` (seeded `admin@solar.local` / `ChangeMeNow!123`)
+- Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
 
@@ -33,7 +34,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile and verification status/submit are available; document upload is on web for Chunk 04.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, and payout accounts are available in the app; KYC document upload remains on web for Chunk 04.
 
 ### Seeded admin (local dev only)
 
@@ -52,7 +53,7 @@ Investor accounts are created via `/register` (not seeded). Google OAuth is defe
 
 ## Workspace layout
 
-- `apps/web` — Next.js (investor web + API + admin KYC)
+- `apps/web` — Next.js (API host + admin KYC/payouts; legacy investor web pages from earlier chunks)
 - `apps/mobile` — Flutter investor client
 - `packages/types` — shared API envelope types
 - `packages/config` — shared TypeScript configs
@@ -86,6 +87,18 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | POST | `/api/admin/kyc/[id]/reject` | Reject |
 | POST | `/api/admin/kyc/[id]/request-info` | Request more info |
 
+## Payout accounts API
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/api/payout-accounts` | List / create (KYC_APPROVED required) |
+| PATCH/DELETE | `/api/payout-accounts/[id]` | Edit / soft-delete |
+| POST | `/api/payout-accounts/[id]/default` | Set default |
+| GET | `/api/admin/payouts` | Staff queue (`status` query) |
+| GET | `/api/admin/payouts/[id]` | Detail (full account number) |
+| POST | `/api/admin/payouts/[id]/approve` | Approve |
+| POST | `/api/admin/payouts/[id]/reject` | Reject with `{ reason }` |
+
 ## Scripts
 
 | Script | Description |
@@ -103,6 +116,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - Opaque Bearer sessions stored hashed in `user_sessions` / `admin_sessions`
 - Investors (`users`) and staff (`admins`) are separate identity tables
 - KYC documents via `ObjectStorage` (local or R2)
+- Payout accounts require KYC approval and staff review before `VERIFIED`
 - Financial calculations will be implemented server-side later
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
@@ -112,3 +126,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 02 design](docs/superpowers/specs/2026-09-20-chunk-02-database-foundation-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-02-database-foundation.md)
 - [Chunk 03 design](docs/superpowers/specs/2026-09-20-chunk-03-authentication-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-03-authentication.md)
 - [Chunk 04 design](docs/superpowers/specs/2026-09-20-chunk-04-profile-verification-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-04-profile-verification.md)
+- [Chunk 05 design](docs/superpowers/specs/2026-09-20-chunk-05-payout-accounts-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-05-payout-accounts.md)
