@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { adminRoles } from "./admin-roles";
+import { adminSessions } from "./admin-sessions";
 import { admins } from "./admins";
 import { permissions } from "./permissions";
 import { rolePermissions } from "./role-permissions";
@@ -7,6 +8,8 @@ import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
 import { userSessions } from "./user-sessions";
 import { users } from "./users";
+import { verificationDocuments } from "./verification-documents";
+import { verificationRequests } from "./verification-requests";
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles, {
@@ -14,6 +17,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [userProfiles.userId],
   }),
   sessions: many(userSessions),
+  verificationRequests: many(verificationRequests),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -32,6 +36,14 @@ export const userSessionsRelations = relations(userSessions, ({ one }) => ({
 
 export const adminsRelations = relations(admins, ({ many }) => ({
   adminRoles: many(adminRoles),
+  sessions: many(adminSessions),
+}));
+
+export const adminSessionsRelations = relations(adminSessions, ({ one }) => ({
+  admin: one(admins, {
+    fields: [adminSessions.adminId],
+    references: [admins.id],
+  }),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -64,3 +76,28 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
     references: [permissions.id],
   }),
 }));
+
+export const verificationRequestsRelations = relations(
+  verificationRequests,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [verificationRequests.userId],
+      references: [users.id],
+    }),
+    reviewer: one(admins, {
+      fields: [verificationRequests.reviewedBy],
+      references: [admins.id],
+    }),
+    documents: many(verificationDocuments),
+  }),
+);
+
+export const verificationDocumentsRelations = relations(
+  verificationDocuments,
+  ({ one }) => ({
+    request: one(verificationRequests, {
+      fields: [verificationDocuments.verificationRequestId],
+      references: [verificationRequests.id],
+    }),
+  }),
+);

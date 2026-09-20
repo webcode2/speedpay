@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { SESSION_COOKIE } from "@/lib/cookies";
+import { ADMIN_SESSION_COOKIE, SESSION_COOKIE } from "@/lib/cookies";
 
 export function getBearerToken(request: Request): string | null {
   const header = request.headers.get("authorization");
@@ -17,6 +17,16 @@ export async function getBearerOrCookieToken(
 
   const jar = await cookies();
   return jar.get(SESSION_COOKIE)?.value ?? null;
+}
+
+export async function getAdminBearerOrCookieToken(
+  request: Request,
+): Promise<string | null> {
+  const bearer = getBearerToken(request);
+  if (bearer) return bearer;
+
+  const jar = await cookies();
+  return jar.get(ADMIN_SESSION_COOKIE)?.value ?? null;
 }
 
 export function requestMeta(request: Request) {

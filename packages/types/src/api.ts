@@ -6,7 +6,11 @@ export type ApiErrorCode =
   | "INVALID_CREDENTIALS"
   | "ACCOUNT_DISABLED"
   | "UNAUTHORIZED"
-  | "INVALID_RESET_TOKEN";
+  | "INVALID_RESET_TOKEN"
+  | "FORBIDDEN"
+  | "PROFILE_INCOMPLETE"
+  | "VERIFICATION_INVALID_STATE"
+  | "NOT_FOUND";
 
 export type ApiErrorBody = {
   code: ApiErrorCode;

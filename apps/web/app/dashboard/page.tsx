@@ -34,9 +34,17 @@ export default async function DashboardPage() {
         Chunk 03 auth shell — portfolio features come in later chunks.
       </p>
       <LogoutButton />
-      <Link className="text-sm text-emerald-400" href="/">
-        Home
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link className="text-emerald-400" href="/profile">
+          Profile
+        </Link>
+        <Link className="text-emerald-400" href="/verification">
+          Verification
+        </Link>
+        <Link className="text-emerald-400" href="/">
+          Home
+        </Link>
+      </div>
     </main>
   );
 }

@@ -22,7 +22,8 @@ pnpm --filter @solar/web dev
 
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
-- Auth: `/login`, `/register`, `/forgot-password`, `/dashboard`
+- Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
+- Staff: `/admin/login`, `/admin/kyc` (seeded `admin@solar.local` / `ChangeMeNow!123`)
 
 ### Flutter mobile
 
@@ -32,7 +33,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile and verification status/submit are available; document upload is on web for Chunk 04.
 
 ### Seeded admin (local dev only)
 
@@ -44,10 +45,15 @@ Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in
 
 Investor accounts are created via `/register` (not seeded). Google OAuth is deferred.
 
+### Object storage
+
+- Dev: `STORAGE_DRIVER=local` writes under `LOCAL_UPLOAD_DIR` (default `uploads/`, gitignored)
+- Prod: `STORAGE_DRIVER=r2` with `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`
+
 ## Workspace layout
 
-- `apps/web` — Next.js (investor web + API + admin host later)
-- `apps/mobile` — Flutter investor auth client
+- `apps/web` — Next.js (investor web + API + admin KYC)
+- `apps/mobile` — Flutter investor client
 - `packages/types` — shared API envelope types
 - `packages/config` — shared TypeScript configs
 - `database` — Drizzle schema, migrations, and seed
@@ -65,6 +71,21 @@ Investor accounts are created via `/register` (not seeded). Google OAuth is defe
 
 Send `Authorization: Bearer <token>` (web also uses httpOnly `session_token` cookie).
 
+Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
+
+## Profile & KYC API
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/PATCH | `/api/profile` | Investor profile |
+| GET/POST | `/api/verification` | Status / submit for review |
+| POST | `/api/verification/documents` | Multipart document upload |
+| GET | `/api/admin/kyc` | Staff queue |
+| GET | `/api/admin/kyc/[id]` | Case detail |
+| POST | `/api/admin/kyc/[id]/approve` | Approve |
+| POST | `/api/admin/kyc/[id]/reject` | Reject |
+| POST | `/api/admin/kyc/[id]/request-info` | Request more info |
+
 ## Scripts
 
 | Script | Description |
@@ -79,8 +100,9 @@ Send `Authorization: Bearer <token>` (web also uses httpOnly `session_token` coo
 ## Architecture notes
 
 - No cron jobs or background workers
-- Opaque Bearer sessions stored hashed in `user_sessions`
+- Opaque Bearer sessions stored hashed in `user_sessions` / `admin_sessions`
 - Investors (`users`) and staff (`admins`) are separate identity tables
+- KYC documents via `ObjectStorage` (local or R2)
 - Financial calculations will be implemented server-side later
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
@@ -89,3 +111,4 @@ Send `Authorization: Bearer <token>` (web also uses httpOnly `session_token` coo
 - [Chunk 01 design](docs/superpowers/specs/2026-09-20-chunk-01-repository-foundation-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-01-repository-foundation.md)
 - [Chunk 02 design](docs/superpowers/specs/2026-09-20-chunk-02-database-foundation-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-02-database-foundation.md)
 - [Chunk 03 design](docs/superpowers/specs/2026-09-20-chunk-03-authentication-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-03-authentication.md)
+- [Chunk 04 design](docs/superpowers/specs/2026-09-20-chunk-04-profile-verification-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-04-profile-verification.md)

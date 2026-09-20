@@ -25,6 +25,14 @@ class ApiClient {
     return _send('POST', path, body: body, auth: auth);
   }
 
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    bool auth = false,
+  }) {
+    return _send('PATCH', path, body: body, auth: auth);
+  }
+
   Future<Map<String, dynamic>> get(String path, {bool auth = false}) {
     return _send('GET', path, auth: auth);
   }
@@ -50,6 +58,12 @@ class ApiClient {
     late http.Response response;
     if (method == 'GET') {
       response = await http.get(uri, headers: headers);
+    } else if (method == 'PATCH') {
+      response = await http.patch(
+        uri,
+        headers: headers,
+        body: body == null ? null : jsonEncode(body),
+      );
     } else {
       response = await http.post(
         uri,

@@ -50,9 +50,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Text(_error!, style: const TextStyle(color: Colors.red))
             : _user == null
                 ? const CircularProgressIndicator()
-                : Text(
-                    'Signed in as ${_user!.email}',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Signed in as ${_user!.email}',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/profile'),
+                        child: const Text('Profile'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/verification'),
+                        child: const Text('Verification'),
+                      ),
+                    ],
                   ),
       ),
     );

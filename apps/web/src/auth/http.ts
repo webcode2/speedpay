@@ -3,7 +3,11 @@ import { ZodError } from "zod";
 import type { ApiErrorCode } from "@solar/types";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { AppError } from "@/lib/app-error";
-import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/cookies";
+import {
+  ADMIN_SESSION_COOKIE,
+  SESSION_COOKIE,
+  sessionCookieOptions,
+} from "@/lib/cookies";
 import { logger } from "@/lib/logger";
 
 export function handleRouteError(error: unknown) {
@@ -31,6 +35,16 @@ export async function setSessionCookie(token: string) {
 export async function clearSessionCookie() {
   const jar = await cookies();
   jar.set(SESSION_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
+}
+
+export async function setAdminSessionCookie(token: string) {
+  const jar = await cookies();
+  jar.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions());
+}
+
+export async function clearAdminSessionCookie() {
+  const jar = await cookies();
+  jar.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
 }
 
 export { apiSuccess, apiError };

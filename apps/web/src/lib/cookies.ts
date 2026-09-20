@@ -1,4 +1,5 @@
 export const SESSION_COOKIE = "session_token";
+export const ADMIN_SESSION_COOKIE = "admin_session_token";
 
 export function sessionCookieMaxAgeSeconds(): number {
   const days = Number(process.env.SESSION_TTL_DAYS ?? 30);

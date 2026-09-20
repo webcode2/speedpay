@@ -6,10 +6,12 @@ import 'core/api/api_client.dart';
 import 'core/auth/auth_repository.dart';
 import 'core/auth/session_store.dart';
 import 'features/auth/forgot_password_screen.dart';
+import 'features/auth/home_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/profile_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/reset_password_screen.dart';
-import 'features/auth/home_screen.dart';
+import 'features/auth/verification_screen.dart';
 
 String defaultApiBaseUrl() {
   const fromEnv = String.fromEnvironment('API_BASE_URL');
@@ -57,6 +59,8 @@ class SolarInvestmentApp extends StatelessWidget {
         '/forgot-password': (_) => const ForgotPasswordScreen(),
         '/reset-password': (_) => const ResetPasswordScreen(),
         '/home': (_) => const HomeScreen(),
+        '/profile': (_) => const ProfileScreen(),
+        '/verification': (_) => const VerificationScreen(),
       },
       initialRoute: '/',
     );
