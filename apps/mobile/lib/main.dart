@@ -15,6 +15,8 @@ import 'features/auth/reset_password_screen.dart';
 import 'features/auth/verification_screen.dart';
 import 'features/marketplace/marketplace_screen.dart';
 import 'features/marketplace/package_detail_screen.dart';
+import 'features/portfolio/investment_detail_screen.dart';
+import 'features/portfolio/portfolio_screen.dart';
 import 'features/wallet/deposit_screen.dart';
 import 'features/wallet/wallet_screen.dart';
 import 'features/wallet/wallet_transaction_screen.dart';
@@ -69,6 +71,16 @@ class SolarInvestmentApp extends StatelessWidget {
         '/verification': (_) => const VerificationScreen(),
         '/payout-accounts': (_) => const PayoutAccountsScreen(),
         '/marketplace': (_) => const MarketplaceScreen(),
+        '/portfolio': (_) => const PortfolioScreen(),
+        '/portfolio/investment': (context) {
+          final id = ModalRoute.of(context)?.settings.arguments as String?;
+          if (id == null || id.isEmpty) {
+            return const Scaffold(
+              body: Center(child: Text('Missing investment id')),
+            );
+          }
+          return InvestmentDetailScreen(investmentId: id);
+        },
         '/marketplace/package': (context) {
           final id = ModalRoute.of(context)?.settings.arguments as String?;
           if (id == null || id.isEmpty) {
