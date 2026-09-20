@@ -60,6 +60,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: () =>
+                            Navigator.of(context).pushNamed('/marketplace'),
+                        child: const Text('Browse packages'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
                             Navigator.of(context).pushNamed('/profile'),
                         child: const Text('Profile'),
                       ),

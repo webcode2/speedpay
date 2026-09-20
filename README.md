@@ -34,7 +34,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, and payout accounts are available in the app; KYC document upload remains on web for Chunk 04.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, and marketplace browse/quote are in the app; KYC document upload remains on web for Chunk 04. Purchase/payment comes in later chunks.
 
 ### Seeded admin (local dev only)
 
@@ -117,6 +117,14 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET/PATCH | `/api/admin/packages/[id]` | Detail / edit (snapshots version if financial terms change while live) |
 | POST | `/api/admin/packages/[id]/activate\|pause\|close\|archive` | Lifecycle |
 
+## Marketplace API (investor)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/marketplace/packages` | OPEN packages in availability window |
+| GET | `/api/marketplace/packages/[id]` | Detail + current version terms |
+| POST | `/api/marketplace/packages/[id]/quote` | `{ lotCount }` preview (no purchase) |
+
 ## Scripts
 
 | Script | Description |
@@ -147,3 +155,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 05 design](docs/superpowers/specs/2026-09-20-chunk-05-payout-accounts-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-05-payout-accounts.md)
 - [Chunk 06 design](docs/superpowers/specs/2026-09-20-chunk-06-projects-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-06-projects.md)
 - [Chunk 07 design](docs/superpowers/specs/2026-09-20-chunk-07-packages-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-07-packages.md)
+- [Chunk 08 design](docs/superpowers/specs/2026-09-20-chunk-08-marketplace-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-08-marketplace.md)

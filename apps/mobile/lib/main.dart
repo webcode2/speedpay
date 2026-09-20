@@ -13,6 +13,8 @@ import 'features/auth/profile_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/reset_password_screen.dart';
 import 'features/auth/verification_screen.dart';
+import 'features/marketplace/marketplace_screen.dart';
+import 'features/marketplace/package_detail_screen.dart';
 
 String defaultApiBaseUrl() {
   const fromEnv = String.fromEnvironment('API_BASE_URL');
@@ -63,6 +65,16 @@ class SolarInvestmentApp extends StatelessWidget {
         '/profile': (_) => const ProfileScreen(),
         '/verification': (_) => const VerificationScreen(),
         '/payout-accounts': (_) => const PayoutAccountsScreen(),
+        '/marketplace': (_) => const MarketplaceScreen(),
+        '/marketplace/package': (context) {
+          final id = ModalRoute.of(context)?.settings.arguments as String?;
+          if (id == null || id.isEmpty) {
+            return const Scaffold(
+              body: Center(child: Text('Missing package id')),
+            );
+          }
+          return PackageDetailScreen(packageId: id);
+        },
       },
       initialRoute: '/',
     );
