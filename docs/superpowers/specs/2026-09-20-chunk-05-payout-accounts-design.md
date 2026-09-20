@@ -1,7 +1,7 @@
 # Chunk 05 — Payout Accounts Design
 
 **Date:** 2026-09-20  
-**Status:** Approved for implementation planning (pending user review of this doc)  
+**Status:** Approved — ready for implementation  
 **Product:** Solar Investment Platform  
 **Depends on:** Chunks 01–04 (auth, KYC, admin sessions, RBAC, audit)  
 **Scope:** Investor payout/bank accounts (Flutter + APIs), admin review queue (web). No investor web UI. No bank name enquiry. No withdrawals or withdrawal PIN.
