@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -18,11 +16,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -35,7 +28,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _error = null;
     });
     try {
-      final data = await _client().get('/api/notifications', auth: true);
+      final data = await context.read<ApiClient>().get('/api/notifications', auth: true);
       final items = (data['items'] as List?) ?? [];
       setState(() {
         _items = items
@@ -55,7 +48,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markRead(String id) async {
     try {
-      await _client().post('/api/notifications/$id/read', auth: true);
+      await context.read<ApiClient>().post('/api/notifications/$id/read', auth: true);
       await _load();
     } on ApiException catch (e) {
       setState(() => _error = e.message);
@@ -64,7 +57,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markAll() async {
     try {
-      await _client().post('/api/notifications/read-all', auth: true);
+      await context.read<ApiClient>().post('/api/notifications/read-all', auth: true);
       await _load();
     } on ApiException catch (e) {
       setState(() => _error = e.message);

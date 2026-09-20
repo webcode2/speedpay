@@ -1,17 +1,19 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api/api_client.dart';
+import 'core/api/api_config.dart';
 import 'core/auth/auth_repository.dart';
 import 'core/auth/session_store.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/home_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/onboarding_screen.dart';
 import 'features/auth/payout_accounts_screen.dart';
 import 'features/auth/profile_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/reset_password_screen.dart';
+import 'features/auth/security_screen.dart';
 import 'features/auth/verification_screen.dart';
 import 'features/marketplace/marketplace_screen.dart';
 import 'features/marketplace/package_detail_screen.dart';
@@ -27,15 +29,6 @@ import 'features/wallet/wallet_transaction_screen.dart';
 import 'features/withdrawals/withdrawal_pin_screen.dart';
 import 'features/withdrawals/withdrawals_screen.dart';
 
-String defaultApiBaseUrl() {
-  const fromEnv = String.fromEnvironment('API_BASE_URL');
-  if (fromEnv.isNotEmpty) return fromEnv;
-  if (defaultTargetPlatform == TargetPlatform.android) {
-    return 'http://10.0.2.2:3000';
-  }
-  return 'http://localhost:3000';
-}
-
 void main() {
   final sessionStore = SessionStore();
   final api = ApiClient(
@@ -48,6 +41,7 @@ void main() {
     MultiProvider(
       providers: [
         Provider.value(value: sessionStore),
+        Provider.value(value: api),
         Provider.value(value: auth),
       ],
       child: const SolarInvestmentApp(),
@@ -72,10 +66,12 @@ class SolarInvestmentApp extends StatelessWidget {
         '/register': (_) => const RegisterScreen(),
         '/forgot-password': (_) => const ForgotPasswordScreen(),
         '/reset-password': (_) => const ResetPasswordScreen(),
+        '/onboarding': (_) => const OnboardingScreen(),
         '/home': (_) => const HomeScreen(),
         '/profile': (_) => const ProfileScreen(),
         '/verification': (_) => const VerificationScreen(),
         '/payout-accounts': (_) => const PayoutAccountsScreen(),
+        '/security': (_) => const SecurityScreen(),
         '/marketplace': (_) => const MarketplaceScreen(),
         '/portfolio': (_) => const PortfolioScreen(),
         '/returns': (_) => const ReturnsScreen(),

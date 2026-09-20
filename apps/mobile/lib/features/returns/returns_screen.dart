@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class ReturnsScreen extends StatefulWidget {
   const ReturnsScreen({super.key});
@@ -18,11 +16,6 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -35,7 +28,7 @@ class _ReturnsScreenState extends State<ReturnsScreen> {
       _error = null;
     });
     try {
-      final data = await _client().get('/api/returns', auth: true);
+      final data = await context.read<ApiClient>().get('/api/returns', auth: true);
       final returns = Map<String, dynamic>.from(data['returns'] as Map);
       final totals = Map<String, dynamic>.from(returns['totals'] as Map);
       final items = (returns['items'] as List?) ?? [];

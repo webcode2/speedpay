@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -37,14 +35,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   Future<void> _load() async {
     try {
-      final data = await _client().get('/api/profile', auth: true);
+      final data = await context.read<ApiClient>().get('/api/profile', auth: true);
       final profile = Map<String, dynamic>.from(data['profile'] as Map);
       final user = Map<String, dynamic>.from(data['user'] as Map);
       setState(() {
@@ -69,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _message = null;
     });
     try {
-      await _client().patch(
+      await context.read<ApiClient>().patch(
         '/api/profile',
         auth: true,
         body: {

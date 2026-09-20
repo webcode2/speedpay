@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -17,11 +15,6 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -34,7 +27,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       _error = null;
     });
     try {
-      final data = await _client().get('/api/marketplace/packages', auth: true);
+      final data = await context.read<ApiClient>().get('/api/marketplace/packages', auth: true);
       final items = (data['items'] as List?) ?? [];
       setState(() {
         _items = items

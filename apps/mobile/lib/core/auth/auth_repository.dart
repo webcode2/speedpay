@@ -90,4 +90,27 @@ class AuthRepository {
       body: {'token': token, 'password': password},
     );
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _api.post(
+      '/api/auth/change-password',
+      auth: true,
+      body: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+    await _sessionStore.clear();
+  }
+
+  Future<void> logoutAll() async {
+    try {
+      await _api.post('/api/auth/logout-all', auth: true);
+    } finally {
+      await _sessionStore.clear();
+    }
+  }
 }

@@ -41,6 +41,29 @@ class ApiClient {
     return _send('DELETE', path, auth: auth);
   }
 
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required List<http.MultipartFile> files,
+    bool auth = false,
+  }) async {
+    final uri = Uri.parse('$baseUrl$path');
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Accept'] = 'application/json';
+    if (auth) {
+      final token = await getToken?.call();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+    request.fields.addAll(fields);
+    request.files.addAll(files);
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    return _decode(response);
+  }
+
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -78,6 +101,10 @@ class ApiClient {
       );
     }
 
+    return _decode(response);
+  }
+
+  Map<String, dynamic> _decode(http.Response response) {
     final decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
       throw ApiException('INTERNAL_ERROR', 'Unexpected response');
@@ -90,7 +117,9 @@ class ApiClient {
     final error = decoded['error'];
     throw ApiException(
       error is Map ? (error['code'] as String? ?? 'INTERNAL_ERROR') : 'INTERNAL_ERROR',
-      error is Map ? (error['message'] as String? ?? 'Request failed') : 'Request failed',
+      error is Map
+          ? (error['message'] as String? ?? 'Request failed')
+          : 'Request failed',
     );
   }
 }

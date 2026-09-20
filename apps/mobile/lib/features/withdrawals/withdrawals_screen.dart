@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class WithdrawalsScreen extends StatefulWidget {
   const WithdrawalsScreen({super.key});
@@ -22,11 +20,6 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen> {
   String? _message;
   bool _loading = true;
   bool _submitting = false;
-
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
 
   @override
   void initState() {
@@ -47,8 +40,8 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen> {
       _error = null;
     });
     try {
-      final w = await _client().get('/api/withdrawals', auth: true);
-      final p = await _client().get('/api/payout-accounts', auth: true);
+      final w = await context.read<ApiClient>().get('/api/withdrawals', auth: true);
+      final p = await context.read<ApiClient>().get('/api/payout-accounts', auth: true);
       final items = (w['items'] as List?) ?? [];
       final accounts = (p['items'] as List?) ?? [];
       final verified = accounts
@@ -91,7 +84,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen> {
     });
     try {
       final key = 'wd-${DateTime.now().millisecondsSinceEpoch}';
-      await _client().post(
+      await context.read<ApiClient>().post(
         '/api/withdrawals',
         auth: true,
         body: {
@@ -114,7 +107,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen> {
 
   Future<void> _cancel(String id) async {
     try {
-      await _client().post('/api/withdrawals/$id/cancel', auth: true);
+      await context.read<ApiClient>().post('/api/withdrawals/$id/cancel', auth: true);
       await _load();
     } on ApiException catch (e) {
       setState(() => _error = e.message);

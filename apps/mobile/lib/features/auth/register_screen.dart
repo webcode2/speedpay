@@ -38,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
           );
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/onboarding');
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {

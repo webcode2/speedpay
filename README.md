@@ -34,7 +34,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, marketplace, portfolio, deposits, and wallet are in the app.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Covers onboarding, profile, verification (with document upload), payout accounts, dashboard, marketplace, portfolio, returns, wallet, deposits, withdrawals, maturity, reinvestment, notifications, and security.
 
 ### Seeded admin (local dev only)
 
@@ -66,6 +66,8 @@ Investor accounts are created via `/register` (not seeded). Google OAuth is defe
 | POST | `/api/auth/register` | Creates user + session |
 | POST | `/api/auth/login` | Issues session |
 | POST | `/api/auth/logout` | Revokes session |
+| POST | `/api/auth/change-password` | Change password (revokes all sessions) |
+| POST | `/api/auth/logout-all` | Revoke all sessions |
 | GET | `/api/auth/me` | Current user |
 | POST | `/api/auth/forgot-password` | Dev returns `resetToken` |
 | POST | `/api/auth/reset-password` | Sets new password |
@@ -243,3 +245,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 22 design](docs/superpowers/specs/2026-09-20-chunk-22-audit-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-22-audit.md)
 - [Chunk 23 design](docs/superpowers/specs/2026-09-20-chunk-23-reports-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-23-reports.md)
 - [Chunk 24 design](docs/superpowers/specs/2026-09-20-chunk-24-settings-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-24-settings.md)
+- [Chunk 25 design](docs/superpowers/specs/2026-09-20-chunk-25-flutter-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-25-flutter.md)

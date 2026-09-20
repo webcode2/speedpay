@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 import '../returns/return_series_chart.dart';
 
 class InvestmentDetailScreen extends StatefulWidget {
@@ -28,9 +26,8 @@ class _InvestmentDetailScreenState extends State<InvestmentDetailScreen> {
   }
 
   Future<void> _load() async {
-    final store = context.read<SessionStore>();
     final client =
-        ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
+        context.read<ApiClient>();
     try {
       final data = await client.get(
         '/api/investments/${widget.investmentId}',

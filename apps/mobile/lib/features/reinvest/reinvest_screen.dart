@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class ReinvestScreen extends StatefulWidget {
   const ReinvestScreen({super.key, required this.parentInvestmentId});
@@ -24,11 +22,6 @@ class _ReinvestScreenState extends State<ReinvestScreen> {
   bool _loading = true;
   bool _submitting = false;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -47,11 +40,11 @@ class _ReinvestScreenState extends State<ReinvestScreen> {
       _error = null;
     });
     try {
-      final previewData = await _client().get(
+      final previewData = await context.read<ApiClient>().get(
         '/api/reinvestments/preview?parentInvestmentId=${widget.parentInvestmentId}',
         auth: true,
       );
-      final pkgData = await _client().get('/api/marketplace/packages', auth: true);
+      final pkgData = await context.read<ApiClient>().get('/api/marketplace/packages', auth: true);
       final items = (pkgData['items'] as List?) ?? [];
       final packages = items
           .whereType<Map>()
@@ -86,7 +79,7 @@ class _ReinvestScreenState extends State<ReinvestScreen> {
     });
     try {
       final key = 'ri-${DateTime.now().millisecondsSinceEpoch}';
-      final data = await _client().post(
+      final data = await context.read<ApiClient>().post(
         '/api/reinvestments',
         auth: true,
         body: {

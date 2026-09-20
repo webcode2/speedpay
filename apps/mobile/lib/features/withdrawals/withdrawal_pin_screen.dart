@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class WithdrawalPinScreen extends StatefulWidget {
   const WithdrawalPinScreen({super.key});
@@ -21,11 +19,6 @@ class _WithdrawalPinScreenState extends State<WithdrawalPinScreen> {
   String? _message;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -42,7 +35,7 @@ class _WithdrawalPinScreenState extends State<WithdrawalPinScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await _client().get('/api/withdrawal-pin', auth: true);
+      final data = await context.read<ApiClient>().get('/api/withdrawal-pin', auth: true);
       setState(() {
         _hasPin = data['hasPin'] as bool? ?? false;
         _loading = false;
@@ -61,7 +54,7 @@ class _WithdrawalPinScreenState extends State<WithdrawalPinScreen> {
       _message = null;
     });
     try {
-      await _client().post(
+      await context.read<ApiClient>().post(
         '/api/withdrawal-pin',
         auth: true,
         body: {'pin': _pin.text.trim()},
@@ -81,7 +74,7 @@ class _WithdrawalPinScreenState extends State<WithdrawalPinScreen> {
       _message = null;
     });
     try {
-      await _client().post(
+      await context.read<ApiClient>().post(
         '/api/withdrawal-pin',
         auth: true,
         body: {

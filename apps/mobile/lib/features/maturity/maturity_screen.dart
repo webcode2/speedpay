@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class MaturityScreen extends StatefulWidget {
   const MaturityScreen({super.key});
@@ -18,11 +16,6 @@ class _MaturityScreenState extends State<MaturityScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -35,7 +28,7 @@ class _MaturityScreenState extends State<MaturityScreen> {
       _error = null;
     });
     try {
-      final data = await _client().get('/api/maturities', auth: true);
+      final data = await context.read<ApiClient>().get('/api/maturities', auth: true);
       final eligible = (data['eligible'] as List?) ?? [];
       final processed = (data['processed'] as List?) ?? [];
       setState(() {

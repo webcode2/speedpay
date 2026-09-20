@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -18,11 +16,6 @@ class _WalletScreenState extends State<WalletScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -35,8 +28,8 @@ class _WalletScreenState extends State<WalletScreen> {
       _error = null;
     });
     try {
-      final walletData = await _client().get('/api/wallet', auth: true);
-      final txData = await _client().get('/api/wallet/transactions', auth: true);
+      final walletData = await context.read<ApiClient>().get('/api/wallet', auth: true);
+      final txData = await context.read<ApiClient>().get('/api/wallet/transactions', auth: true);
       final items = (txData['items'] as List?) ?? [];
       setState(() {
         _wallet = Map<String, dynamic>.from(walletData['wallet'] as Map);

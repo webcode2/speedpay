@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class DepositScreen extends StatefulWidget {
   const DepositScreen({super.key});
@@ -18,11 +16,6 @@ class _DepositScreenState extends State<DepositScreen> {
   String? _error;
   String? _message;
   bool _loading = true;
-
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
 
   @override
   void initState() {
@@ -42,7 +35,7 @@ class _DepositScreenState extends State<DepositScreen> {
       _error = null;
     });
     try {
-      final data = await _client().get('/api/deposits', auth: true);
+      final data = await context.read<ApiClient>().get('/api/deposits', auth: true);
       final items = (data['items'] as List?) ?? [];
       setState(() {
         _items = items
@@ -70,7 +63,7 @@ class _DepositScreenState extends State<DepositScreen> {
       return;
     }
     try {
-      final data = await _client().post(
+      final data = await context.read<ApiClient>().post(
         '/api/deposits',
         auth: true,
         body: {'amount': amount},
@@ -92,7 +85,7 @@ class _DepositScreenState extends State<DepositScreen> {
       _message = null;
     });
     try {
-      final data = await _client().post('/api/deposits/$id/verify', auth: true);
+      final data = await context.read<ApiClient>().post('/api/deposits/$id/verify', auth: true);
       final credited = data['credited'] == true;
       final already = data['alreadyComplete'] == true;
       setState(() {

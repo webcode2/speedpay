@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class WalletTransactionScreen extends StatefulWidget {
   const WalletTransactionScreen({super.key, required this.transactionId});
@@ -27,9 +25,8 @@ class _WalletTransactionScreenState extends State<WalletTransactionScreen> {
   }
 
   Future<void> _load() async {
-    final store = context.read<SessionStore>();
     final client =
-        ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
+        context.read<ApiClient>();
     try {
       final data = await client.get(
         '/api/wallet/transactions/${widget.transactionId}',

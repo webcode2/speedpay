@@ -162,3 +162,31 @@ export async function resetPassword(rawToken: string, password: string) {
 
   await revokeAllUserSessions(row.userId);
 }
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+) {
+  await assertPasswordPolicy(newPassword);
+  const db = getDb();
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) throw new AppError("NOT_FOUND", "User not found.", 404);
+
+  const ok = await verifyPassword(user.passwordHash, currentPassword);
+  if (!ok) {
+    throw new AppError("INVALID_CREDENTIALS", "Current password is incorrect.", 401);
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+
+  await revokeAllUserSessions(userId);
+}
+
+export async function logoutAllSessions(userId: string) {
+  await revokeAllUserSessions(userId);
+}

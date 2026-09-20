@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class PackageDetailScreen extends StatefulWidget {
   const PackageDetailScreen({super.key, required this.packageId});
@@ -23,11 +21,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
   bool _loading = true;
   bool _purchasing = false;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -42,7 +35,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await _client().get(
+      final data = await context.read<ApiClient>().get(
         '/api/marketplace/packages/${widget.packageId}',
         auth: true,
       );
@@ -70,7 +63,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
       return;
     }
     try {
-      final data = await _client().post(
+      final data = await context.read<ApiClient>().post(
         '/api/marketplace/packages/${widget.packageId}/quote',
         auth: true,
         body: {'lotCount': count},
@@ -97,7 +90,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     try {
       final key =
           'purchase-${widget.packageId}-$count-${DateTime.now().millisecondsSinceEpoch}';
-      final data = await _client().post(
+      final data = await context.read<ApiClient>().post(
         '/api/marketplace/packages/${widget.packageId}/purchase',
         auth: true,
         body: {'lotCount': count, 'idempotencyKey': key},

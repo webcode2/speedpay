@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
-import '../../core/auth/session_store.dart';
-import '../../main.dart';
 
 class PayoutAccountsScreen extends StatefulWidget {
   const PayoutAccountsScreen({super.key});
@@ -17,11 +15,6 @@ class _PayoutAccountsScreenState extends State<PayoutAccountsScreen> {
   String? _error;
   bool _loading = true;
 
-  ApiClient _client() {
-    final store = context.read<SessionStore>();
-    return ApiClient(baseUrl: defaultApiBaseUrl(), getToken: store.readToken);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -34,7 +27,7 @@ class _PayoutAccountsScreenState extends State<PayoutAccountsScreen> {
       _loading = true;
     });
     try {
-      final data = await _client().get('/api/payout-accounts', auth: true);
+      final data = await context.read<ApiClient>().get('/api/payout-accounts', auth: true);
       final items = (data['items'] as List?) ?? [];
       setState(() {
         _items = items
@@ -108,13 +101,13 @@ class _PayoutAccountsScreenState extends State<PayoutAccountsScreen> {
         'accountName': name.text.trim(),
       };
       if (isEdit) {
-        await _client().patch(
+        await context.read<ApiClient>().patch(
           '/api/payout-accounts/${existing['id']}',
           auth: true,
           body: body,
         );
       } else {
-        await _client().post('/api/payout-accounts', auth: true, body: body);
+        await context.read<ApiClient>().post('/api/payout-accounts', auth: true, body: body);
       }
       await _load();
     } on ApiException catch (e) {
@@ -124,7 +117,7 @@ class _PayoutAccountsScreenState extends State<PayoutAccountsScreen> {
 
   Future<void> _setDefault(String id) async {
     try {
-      await _client().post('/api/payout-accounts/$id/default', auth: true);
+      await context.read<ApiClient>().post('/api/payout-accounts/$id/default', auth: true);
       await _load();
     } on ApiException catch (e) {
       setState(() => _error = e.message);
@@ -133,7 +126,7 @@ class _PayoutAccountsScreenState extends State<PayoutAccountsScreen> {
 
   Future<void> _remove(String id) async {
     try {
-      await _client().delete('/api/payout-accounts/$id', auth: true);
+      await context.read<ApiClient>().delete('/api/payout-accounts/$id', auth: true);
       await _load();
     } on ApiException catch (e) {
       setState(() => _error = e.message);
