@@ -18,6 +18,7 @@ import 'features/marketplace/package_detail_screen.dart';
 import 'features/maturity/maturity_screen.dart';
 import 'features/portfolio/investment_detail_screen.dart';
 import 'features/portfolio/portfolio_screen.dart';
+import 'features/reinvest/reinvest_screen.dart';
 import 'features/returns/returns_screen.dart';
 import 'features/wallet/deposit_screen.dart';
 import 'features/wallet/wallet_screen.dart';
@@ -78,6 +79,15 @@ class SolarInvestmentApp extends StatelessWidget {
         '/portfolio': (_) => const PortfolioScreen(),
         '/returns': (_) => const ReturnsScreen(),
         '/maturity': (_) => const MaturityScreen(),
+        '/reinvest': (context) {
+          final id = ModalRoute.of(context)?.settings.arguments as String?;
+          if (id == null || id.isEmpty) {
+            return const Scaffold(
+              body: Center(child: Text('Missing parent investment id')),
+            );
+          }
+          return ReinvestScreen(parentInvestmentId: id);
+        },
         '/portfolio/investment': (context) {
           final id = ModalRoute.of(context)?.settings.arguments as String?;
           if (id == null || id.isEmpty) {

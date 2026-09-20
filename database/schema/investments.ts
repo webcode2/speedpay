@@ -34,6 +34,7 @@ export const investments = pgTable(
     returnType: text("return_type").notNull(),
     returnRate: text("return_rate").notNull(),
     status: text("status").notNull().default("ACTIVE"),
+    parentInvestmentId: uuid("parent_investment_id"),
     idempotencyKey: text("idempotency_key"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -46,6 +47,7 @@ export const investments = pgTable(
     index("investments_user_id_idx").on(t.userId),
     index("investments_package_id_idx").on(t.packageId),
     index("investments_status_idx").on(t.status),
+    index("investments_parent_id_idx").on(t.parentInvestmentId),
     uniqueIndex("investments_user_idempotency_uid")
       .on(t.userId, t.idempotencyKey)
       .where(sql`${t.idempotencyKey} is not null`),

@@ -114,6 +114,9 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/admin/maturities` | Due ACTIVE investments (`maturities.read`) |
 | GET | `/api/admin/maturities/[id]` | Preview settlement |
 | POST | `/api/admin/maturities/[id]/process` | Process maturity → AVAILABLE (`maturities.process`) |
+| GET | `/api/reinvestments` | List my reinvestments |
+| GET | `/api/reinvestments/preview` | Remaining reinvestable (`parentInvestmentId`) |
+| POST | `/api/reinvestments` | Reinvest matured funds into a new package |
 
 ## Admin projects API
 
@@ -212,3 +215,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 15 design](docs/superpowers/specs/2026-09-20-chunk-15-materialize-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-15-materialize.md)
 - [Chunk 16 design](docs/superpowers/specs/2026-09-20-chunk-16-withdrawals-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-16-withdrawals.md)
 - [Chunk 17 design](docs/superpowers/specs/2026-09-20-chunk-17-maturity-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-17-maturity.md)
+- [Chunk 18 design](docs/superpowers/specs/2026-09-20-chunk-18-reinvest-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-18-reinvest.md)

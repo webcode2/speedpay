@@ -19,6 +19,7 @@ import { investmentAccruals } from "./investment-accruals";
 import { withdrawalPins } from "./withdrawal-pins";
 import { withdrawals } from "./withdrawals";
 import { maturities } from "./maturities";
+import { reinvestments } from "./reinvestments";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -243,6 +244,15 @@ export const investmentsRelations = relations(investments, ({ one, many }) => ({
     fields: [investments.id],
     references: [maturities.investmentId],
   }),
+  parent: one(investments, {
+    fields: [investments.parentInvestmentId],
+    references: [investments.id],
+    relationName: "investmentParent",
+  }),
+  children: many(investments, { relationName: "investmentParent" }),
+  reinvestmentsAsParent: many(reinvestments, {
+    relationName: "reinvestmentParent",
+  }),
 }));
 
 export const investmentLotsRelations = relations(investmentLots, ({ one }) => ({
@@ -322,5 +332,22 @@ export const maturitiesRelations = relations(maturities, ({ one }) => ({
   processedByAdmin: one(admins, {
     fields: [maturities.processedBy],
     references: [admins.id],
+  }),
+}));
+
+export const reinvestmentsRelations = relations(reinvestments, ({ one }) => ({
+  parent: one(investments, {
+    fields: [reinvestments.parentInvestmentId],
+    references: [investments.id],
+    relationName: "reinvestmentParent",
+  }),
+  newInvestment: one(investments, {
+    fields: [reinvestments.newInvestmentId],
+    references: [investments.id],
+    relationName: "reinvestmentChild",
+  }),
+  user: one(users, {
+    fields: [reinvestments.userId],
+    references: [users.id],
   }),
 }));

@@ -105,6 +105,15 @@ class _MaturityScreenState extends State<MaturityScreen> {
                       subtitle: Text(
                         'Credited ${item['maturityValue']} · ${item['processedAt']}',
                       ),
+                      trailing: item['status'] == 'MATURED'
+                          ? TextButton(
+                              onPressed: () => Navigator.of(context).pushNamed(
+                                '/reinvest',
+                                arguments: item['id'],
+                              ),
+                              child: const Text('Reinvest'),
+                            )
+                          : null,
                       onTap: () => Navigator.of(context).pushNamed(
                         '/portfolio/investment',
                         arguments: item['id'],

@@ -28,5 +28,6 @@ export { investmentAccruals } from "./investment-accruals";
 export { withdrawalPins } from "./withdrawal-pins";
 export { withdrawals } from "./withdrawals";
 export { maturities } from "./maturities";
+export { reinvestments } from "./reinvestments";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";
