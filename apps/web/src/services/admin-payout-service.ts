@@ -1,5 +1,5 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { auditLogs, payoutAccounts, users } from "@solar/database/schema";
+import { payoutAccounts, users } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 import type { AuditMeta } from "@/audit/write-admin-audit";

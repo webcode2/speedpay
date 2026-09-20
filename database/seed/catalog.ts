@@ -42,6 +42,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   { code: "roles.read", name: "Read roles" },
   { code: "roles.update", name: "Update roles" },
   { code: "audit.read", name: "Read audit logs" },
+  { code: "reports.read", name: "Read reports" },
 ];
 
 export const ALL_PERMISSION_CODES = PERMISSION_CATALOG.map((p) => p.code);
@@ -94,6 +95,7 @@ export const ROLE_PERMISSION_CODES: Record<string, string[]> = {
     "withdrawals.read",
     "investments.read",
     "audit.read",
+    "reports.read",
   ],
   FINANCE_OFFICER: [
     "payouts.read",
