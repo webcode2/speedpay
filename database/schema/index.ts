@@ -24,5 +24,6 @@ export { walletTransactions } from "./wallet-transactions";
 export { deposits } from "./deposits";
 export { investments } from "./investments";
 export { investmentLots } from "./investment-lots";
+export { investmentAccruals } from "./investment-accruals";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";

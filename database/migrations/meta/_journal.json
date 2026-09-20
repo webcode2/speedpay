@@ -71,6 +71,13 @@
       "when": 1789911425221,
       "tag": "0009_faithful_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789912200000,
+      "tag": "0010_investment_accruals",
+      "breakpoints": true
     }
   ]
 }

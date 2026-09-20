@@ -39,6 +39,9 @@ export default function AdminKycQueuePage() {
           <Link className="text-emerald-400" href="/admin/projects">
             Projects
           </Link>
+          <Link className="text-emerald-400" href="/admin/returns">
+            Returns
+          </Link>
           <Link className="text-emerald-400" href="/admin/payouts">
             Payouts
           </Link>

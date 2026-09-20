@@ -15,6 +15,7 @@ import { wallets } from "./wallets";
 import { deposits } from "./deposits";
 import { investments } from "./investments";
 import { investmentLots } from "./investment-lots";
+import { investmentAccruals } from "./investment-accruals";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -229,6 +230,7 @@ export const investmentsRelations = relations(investments, ({ one, many }) => ({
     references: [packageVersions.id],
   }),
   lots: many(investmentLots),
+  accruals: many(investmentAccruals),
 }));
 
 export const investmentLotsRelations = relations(investmentLots, ({ one }) => ({
@@ -241,3 +243,25 @@ export const investmentLotsRelations = relations(investmentLots, ({ one }) => ({
     references: [investmentPackages.id],
   }),
 }));
+
+export const investmentAccrualsRelations = relations(
+  investmentAccruals,
+  ({ one }) => ({
+    investment: one(investments, {
+      fields: [investmentAccruals.investmentId],
+      references: [investments.id],
+    }),
+    user: one(users, {
+      fields: [investmentAccruals.userId],
+      references: [users.id],
+    }),
+    createdByAdmin: one(admins, {
+      fields: [investmentAccruals.createdBy],
+      references: [admins.id],
+    }),
+    walletTransaction: one(walletTransactions, {
+      fields: [investmentAccruals.walletTransactionId],
+      references: [walletTransactions.id],
+    }),
+  }),
+);

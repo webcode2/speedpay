@@ -43,6 +43,9 @@ export default function AdminPayoutsQueuePage() {
           <Link className="text-emerald-400" href="/admin/projects">
             Projects
           </Link>
+          <Link className="text-emerald-400" href="/admin/returns">
+            Returns
+          </Link>
           <Link className="text-emerald-400" href="/admin/kyc">
             KYC
           </Link>

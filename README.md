@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`, `/admin/returns`
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -98,6 +98,9 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/admin/payouts/[id]` | Detail (full account number) |
 | POST | `/api/admin/payouts/[id]/approve` | Approve |
 | POST | `/api/admin/payouts/[id]/reject` | Reject with `{ reason }` |
+| GET | `/api/admin/returns` | Eligible return materializations (`returns.read`) |
+| GET | `/api/admin/returns/[id]` | Preview calc + history |
+| POST | `/api/admin/returns/[id]/materialize` | Confirm → accrual + PENDING credit (`returns.calculate`) |
 
 ## Admin projects API
 
@@ -173,6 +176,7 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - Payout accounts require KYC approval and staff review before `VERIFIED`
 - Wallet balances are derived from immutable ledger entries (no client-side mutation)
 - Investment returns calculated on-demand via `calculations/investment-return.ts` (no cron)
+- Admin may materialize accruals into `investment_accruals` + wallet PENDING (no cron)
 - Financial calculations will be implemented server-side later
 - API envelope: `{ success, data }` / `{ success: false, error }`
 
@@ -192,3 +196,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 12 design](docs/superpowers/specs/2026-09-20-chunk-12-portfolio-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-12-portfolio.md)
 - [Chunk 13 design](docs/superpowers/specs/2026-09-20-chunk-13-returns-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-13-returns.md)
 - [Chunk 14 design](docs/superpowers/specs/2026-09-20-chunk-14-returns-ui-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-14-returns-ui.md)
+- [Chunk 15 design](docs/superpowers/specs/2026-09-20-chunk-15-materialize-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-15-materialize.md)

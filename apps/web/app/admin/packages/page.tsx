@@ -46,6 +46,9 @@ export default function AdminPackagesPage() {
           <Link className="text-emerald-400" href="/admin/projects">
             Projects
           </Link>
+          <Link className="text-emerald-400" href="/admin/returns">
+            Returns
+          </Link>
         </div>
       </div>
       <select
