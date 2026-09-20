@@ -25,7 +25,8 @@ export default async function HomePage() {
         Platform foundation
       </h1>
       <p className="text-slate-400">
-        Chunk 03 — investor auth is live. Sign in to open your dashboard.
+        Investor portal and staff admin are live. Sign in to manage your
+        portfolio.
       </p>
       <p
         className={

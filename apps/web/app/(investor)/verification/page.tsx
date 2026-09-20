@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { InvestorPage } from "../_components/investor-page";
 
 type VerificationData = {
   status: string;
@@ -74,17 +74,9 @@ export default function VerificationPage() {
     await load();
   }
 
-  if (loading) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6">
-        <p className="text-slate-400">Loading verification…</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Verification</h1>
+    <InvestorPage title="Verification">
+      {loading ? <p className="text-slate-400">Loading…</p> : null}
       <p className="text-slate-400">Status: {data?.status ?? "NOT_STARTED"}</p>
       {data?.request?.rejectionReason ? (
         <p className="text-amber-300">Reason: {data.request.rejectionReason}</p>
@@ -130,14 +122,6 @@ export default function VerificationPage() {
       </button>
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
       {message ? <p className="text-sm text-emerald-400">{message}</p> : null}
-      <div className="flex gap-4 text-sm">
-        <Link className="text-emerald-400" href="/profile">
-          Profile
-        </Link>
-        <Link className="text-emerald-400" href="/dashboard">
-          Dashboard
-        </Link>
-      </div>
-    </main>
+    </InvestorPage>
   );
 }

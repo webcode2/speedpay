@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { InvestorPage } from "../_components/investor-page";
 
 type ProfileData = {
   complete: boolean;
@@ -66,27 +67,26 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6">
-        <p className="text-slate-400">Loading profile…</p>
-      </main>
+      <InvestorPage title="Profile">
+        <p className="text-slate-400">Loading…</p>
+      </InvestorPage>
     );
   }
 
   if (!data) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-2xl items-center px-6">
+      <InvestorPage title="Profile">
         <p className="text-red-400">{error ?? "Unavailable"}</p>
-      </main>
+      </InvestorPage>
     );
   }
 
   const p = data.profile;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Profile</h1>
+    <InvestorPage title="Profile">
       <p className="text-slate-400">
-        {data.user.email} · status {data.user.status} ·{" "}
+        {data.user.email} · {data.user.status} ·{" "}
         {data.complete ? "Ready for KYC" : "Incomplete for KYC"}
       </p>
       <form onSubmit={onSubmit} className="grid gap-3">
@@ -121,14 +121,9 @@ export default function ProfilePage() {
           Save profile
         </button>
       </form>
-      <div className="flex gap-4 text-sm">
-        <Link className="text-emerald-400" href="/verification">
-          Verification
-        </Link>
-        <Link className="text-emerald-400" href="/dashboard">
-          Dashboard
-        </Link>
-      </div>
-    </main>
+      <Link className="text-sm text-emerald-400" href="/verification">
+        Verification
+      </Link>
+    </InvestorPage>
   );
 }

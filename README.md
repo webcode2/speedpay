@@ -22,9 +22,9 @@ pnpm --filter @solar/web dev
 
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
-- Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
+- Investor web: `/login`, `/register`, `/dashboard`, `/packages`, `/investments`, `/returns`, `/wallet`, `/deposits`, `/withdrawals`, `/maturity`, `/reinvest`, `/notifications`, `/profile`, `/verification`, `/payout-accounts`, `/security`, `/settings`, `/onboarding`
 - Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles, audit, reports, settings
-- Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
+- Investors: Flutter app **and** Next.js investor portal (same APIs)
 
 ### Flutter mobile
 
@@ -53,7 +53,7 @@ Investor accounts are created via `/register` (not seeded). Google OAuth is defe
 
 ## Workspace layout
 
-- `apps/web` — Next.js (API host + admin KYC/payouts; legacy investor web pages from earlier chunks)
+- `apps/web` — Next.js (API host, admin dashboard, investor portal)
 - `apps/mobile` — Flutter investor client
 - `packages/types` — shared API envelope types
 - `packages/config` — shared TypeScript configs
@@ -246,3 +246,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 23 design](docs/superpowers/specs/2026-09-20-chunk-23-reports-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-23-reports.md)
 - [Chunk 24 design](docs/superpowers/specs/2026-09-20-chunk-24-settings-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-24-settings.md)
 - [Chunk 25 design](docs/superpowers/specs/2026-09-20-chunk-25-flutter-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-25-flutter.md)
+- [Chunk 26 design](docs/superpowers/specs/2026-09-20-chunk-26-investor-web-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-26-investor-web.md)
