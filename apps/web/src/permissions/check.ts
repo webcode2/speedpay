@@ -6,6 +6,7 @@ import {
   roles,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
+import { AppError } from "@/lib/app-error";
 
 export async function getAdminPermissionCodes(
   adminId: string,
@@ -39,3 +40,23 @@ export async function adminHasPermission(
   const codes = await getAdminPermissionCodes(adminId);
   return codes.includes(code);
 }
+
+export async function requireAdminPermission(
+  adminId: string,
+  code: string,
+): Promise<void> {
+  const ok = await adminHasPermission(adminId, code);
+  if (!ok) throw new AppError("FORBIDDEN", "Missing required permission.", 403);
+}
+
+export async function requireAnyAdminPermission(
+  adminId: string,
+  codes: string[],
+): Promise<void> {
+  for (const code of codes) {
+    if (await adminHasPermission(adminId, code)) return;
+  }
+  throw new AppError("FORBIDDEN", "Missing required permission.", 403);
+}
+
+export { hasAnyPermission } from "./visibility";

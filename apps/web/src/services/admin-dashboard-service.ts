@@ -9,21 +9,14 @@ import {
   withdrawals,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
-import { AppError } from "@/lib/app-error";
-import { adminHasPermission } from "@/permissions/check";
-
-async function requireAnyPerm(adminId: string, codes: string[]) {
-  for (const code of codes) {
-    if (await adminHasPermission(adminId, code)) return;
-  }
-  throw new AppError("FORBIDDEN", "Missing required permission.", 403);
-}
+import { requireAnyAdminPermission } from "@/permissions/check";
 
 export async function getAdminDashboard(adminId: string) {
-  await requireAnyPerm(adminId, [
+  await requireAnyAdminPermission(adminId, [
     "users.read",
     "investments.read",
     "kyc.read",
+    "deposits.read",
     "withdrawals.read",
     "returns.read",
   ]);

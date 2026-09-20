@@ -28,6 +28,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   { code: "packages.pause", name: "Pause packages" },
   { code: "investments.read", name: "Read investments" },
   { code: "investments.update", name: "Update investments" },
+  { code: "deposits.read", name: "Read deposits" },
   { code: "withdrawals.read", name: "Read withdrawals" },
   { code: "withdrawals.approve", name: "Approve withdrawals" },
   { code: "withdrawals.reject", name: "Reject withdrawals" },
@@ -89,6 +90,7 @@ export const ROLE_PERMISSION_CODES: Record<string, string[]> = {
   CUSTOMER_SUPPORT: ["users.read", "kyc.read"],
   ACCOUNTANT: [
     "returns.read",
+    "deposits.read",
     "withdrawals.read",
     "investments.read",
     "audit.read",
@@ -97,6 +99,7 @@ export const ROLE_PERMISSION_CODES: Record<string, string[]> = {
     "payouts.read",
     "payouts.approve",
     "payouts.reject",
+    "deposits.read",
     "withdrawals.read",
     "withdrawals.approve",
     "withdrawals.reject",

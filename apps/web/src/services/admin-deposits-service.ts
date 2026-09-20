@@ -2,12 +2,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { deposits, users } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
-import { adminHasPermission } from "@/permissions/check";
-
-async function requirePerm(adminId: string, code: string) {
-  const ok = await adminHasPermission(adminId, code);
-  if (!ok) throw new AppError("FORBIDDEN", "Missing required permission.", 403);
-}
+import { requireAdminPermission } from "@/permissions/check";
 
 export async function listAdminDeposits(input: {
   adminId: string;
@@ -15,8 +10,7 @@ export async function listAdminDeposits(input: {
   limit?: number;
   offset?: number;
 }) {
-  // Reuse withdrawals.read for finance visibility until dedicated deposits.* RBAC (C21)
-  await requirePerm(input.adminId, "withdrawals.read");
+  await requireAdminPermission(input.adminId, "deposits.read");
   const db = getDb();
   const limit = Math.min(input.limit ?? 50, 100);
   const offset = input.offset ?? 0;
@@ -56,7 +50,7 @@ export async function listAdminDeposits(input: {
 }
 
 export async function getAdminDeposit(adminId: string, id: string) {
-  await requirePerm(adminId, "withdrawals.read");
+  await requireAdminPermission(adminId, "deposits.read");
   const db = getDb();
   const [row] = await db
     .select({

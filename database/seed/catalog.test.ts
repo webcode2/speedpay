@@ -29,6 +29,7 @@ describe("seed catalog", () => {
         "packages.pause",
         "investments.read",
         "investments.update",
+        "deposits.read",
         "withdrawals.read",
         "withdrawals.approve",
         "withdrawals.reject",
@@ -44,7 +45,7 @@ describe("seed catalog", () => {
         "audit.read",
       ]),
     );
-    expect(codes).toHaveLength(31);
+    expect(codes).toHaveLength(32);
   });
 
   it("includes seven roles", () => {

@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments
+- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -86,9 +86,14 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/admin/users/[id]` | User detail |
 | GET | `/api/admin/investments` | List investments |
 | GET | `/api/admin/investments/[id]` | Investment detail |
-| GET | `/api/admin/deposits` | List deposits |
+| GET | `/api/admin/deposits` | List deposits (`deposits.read`) |
 | GET | `/api/admin/deposits/[id]` | Deposit detail |
 | GET | `/api/admin/reinvestments` | List reinvestments |
+| GET/POST | `/api/admin/staff` | List / create staff (`staff.create` / `staff.update`) |
+| GET/PATCH | `/api/admin/staff/[id]` | Staff detail / update |
+| GET | `/api/admin/roles` | List roles (`roles.read`) |
+| GET/PATCH | `/api/admin/roles/[id]` | Role detail / replace permissions (`roles.update`) |
+| GET | `/api/admin/permissions` | Permission catalog |
 | GET | `/api/admin/kyc` | Staff queue |
 | GET | `/api/admin/kyc/[id]` | Case detail |
 | POST | `/api/admin/kyc/[id]/approve` | Approve |
@@ -229,3 +234,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 18 design](docs/superpowers/specs/2026-09-20-chunk-18-reinvest-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-18-reinvest.md)
 - [Chunk 19 design](docs/superpowers/specs/2026-09-20-chunk-19-notifications-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-19-notifications.md)
 - [Chunk 20 design](docs/superpowers/specs/2026-09-20-chunk-20-admin-ops-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-20-admin-ops.md)
+- [Chunk 21 design](docs/superpowers/specs/2026-09-20-chunk-21-rbac-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-21-rbac.md)

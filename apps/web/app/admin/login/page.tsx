@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
         setError(json.error?.message ?? "Login failed");
         return;
       }
-      router.push("/admin/projects");
+      router.push("/admin");
       router.refresh();
     } catch {
       setError("Network error");
