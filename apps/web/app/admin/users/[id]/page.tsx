@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { hasAnyPermission } from "@/permissions/visibility";
 import { AdminNav } from "../../_components/admin-nav";
+import { useAdminPermissions } from "../../_components/admin-shell";
 
 type Detail = {
   id: string;
@@ -17,20 +19,53 @@ type Detail = {
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
+  const permissions = useAdminPermissions();
+  const canDisable = hasAnyPermission(permissions, ["users.disable"]);
+  const canEnable = hasAnyPermission(permissions, ["users.update"]);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    const res = await fetch(`/api/admin/users/${params.id}`);
+    const json = await res.json();
+    if (!json.success) {
+      setError(json.error?.message ?? "Failed to load");
+      return;
+    }
+    setDetail(json.data.user);
+    setError(null);
+  }
 
   useEffect(() => {
-    void (async () => {
-      const res = await fetch(`/api/admin/users/${params.id}`);
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
+
+  async function setStatus(action: "disable" | "enable") {
+    setBusy(true);
+    setMessage(null);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/users/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
       const json = await res.json();
       if (!json.success) {
-        setError(json.error?.message ?? "Failed to load");
+        setError(json.error?.message ?? "Update failed");
         return;
       }
-      setDetail(json.data.user);
-    })();
-  }, [params.id]);
+      setMessage(action === "disable" ? "User suspended" : "User enabled");
+      await load();
+    } catch {
+      setError("Network error");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (!detail) {
     return (
@@ -48,6 +83,30 @@ export default function AdminUserDetailPage() {
       <AdminNav />
       <h1 className="text-3xl font-semibold">{detail.email}</h1>
       <p className="text-slate-400">Status: {detail.status}</p>
+      {error ? <p className="text-red-400">{error}</p> : null}
+      {message ? <p className="text-emerald-400">{message}</p> : null}
+      <div className="flex gap-2">
+        {canDisable && detail.status !== "SUSPENDED" && detail.status !== "CLOSED" ? (
+          <button
+            type="button"
+            disabled={busy}
+            className="rounded bg-red-800 px-3 py-2 text-sm"
+            onClick={() => void setStatus("disable")}
+          >
+            Suspend
+          </button>
+        ) : null}
+        {canEnable && detail.status === "SUSPENDED" ? (
+          <button
+            type="button"
+            disabled={busy}
+            className="rounded bg-emerald-700 px-3 py-2 text-sm"
+            onClick={() => void setStatus("enable")}
+          >
+            Enable
+          </button>
+        ) : null}
+      </div>
       <dl className="space-y-2 text-sm">
         <div>
           <dt className="text-slate-500">Name</dt>

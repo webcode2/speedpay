@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { materializeReturn } from "@/services/admin-returns-service";
@@ -18,6 +18,7 @@ export async function POST(request: Request, { params }: Params) {
     const result = await materializeReturn({
       adminId: admin.id,
       investmentId: id,
+      meta: requestMeta(request),
       idempotencyKey: body.idempotencyKey,
     });
     return apiSuccess(result);

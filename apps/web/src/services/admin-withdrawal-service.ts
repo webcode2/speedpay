@@ -1,6 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
 import {
-  auditLogs,
   payoutAccounts,
   users,
   walletTransactions,
@@ -8,6 +7,8 @@ import {
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { maskAccountNumber } from "@/services/payout-account-service";
 import { safeNotify } from "@/services/notification-service";
@@ -96,7 +97,7 @@ export async function getAdminWithdrawal(adminId: string, id: string) {
   };
 }
 
-export async function approveWithdrawal(adminId: string, id: string) {
+export async function approveWithdrawal(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "withdrawals.approve");
   const db = getDb();
   const detail = await getAdminWithdrawal(adminId, id);
@@ -121,14 +122,14 @@ export async function approveWithdrawal(adminId: string, id: string) {
   if (!updated) {
     throw new AppError("INVALID_STATE", "Withdrawal state changed.", 400);
   }
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "WITHDRAWAL_APPROVED",
     entityType: "withdrawal",
     entityId: id,
     before: { status: "PENDING" },
     after: { status: "APPROVED" },
+    meta,
   });
   return updated;
 }
@@ -137,6 +138,7 @@ export async function rejectWithdrawal(
   adminId: string,
   id: string,
   reason: string,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "withdrawals.reject");
   if (!reason.trim()) {
@@ -178,20 +180,20 @@ export async function rejectWithdrawal(
       .where(eq(walletTransactions.id, row.walletTransactionId));
   }
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "WITHDRAWAL_REJECTED",
     entityType: "withdrawal",
     entityId: id,
     before: { status: "PENDING" },
     after: { status: "REJECTED", reason: reason.trim() },
     reason: reason.trim(),
+    meta,
   });
   return updated!;
 }
 
-export async function processWithdrawal(adminId: string, id: string) {
+export async function processWithdrawal(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "withdrawals.process");
   const db = getDb();
   const [row] = await db
@@ -233,14 +235,14 @@ export async function processWithdrawal(adminId: string, id: string) {
       .where(eq(walletTransactions.id, row.walletTransactionId));
   }
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "WITHDRAWAL_PROCESSED",
     entityType: "withdrawal",
     entityId: id,
     before: { status: "APPROVED" },
     after: { status: "COMPLETED" },
+    meta,
   });
 
   await safeNotify({

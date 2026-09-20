@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { processMaturity } from "@/services/admin-maturity-service";
@@ -17,8 +17,9 @@ export async function POST(request: Request, { params }: Params) {
     };
     return apiSuccess(
       await processMaturity({
-        adminId: admin.id,
-        investmentId: id,
+      adminId: admin.id,
+      investmentId: id,
+      meta: requestMeta(request),
         idempotencyKey: body.idempotencyKey,
       }),
     );

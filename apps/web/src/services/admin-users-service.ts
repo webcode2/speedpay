@@ -6,9 +6,14 @@ import {
   users,
   verificationRequests,
 } from "@solar/database/schema";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
-import { adminHasPermission } from "@/permissions/check";
+import {
+  adminHasPermission,
+  requireAdminPermission,
+} from "@/permissions/check";
 
 async function requirePerm(adminId: string, code: string) {
   const ok = await adminHasPermission(adminId, code);
@@ -96,4 +101,72 @@ export async function getAdminUser(adminId: string, userId: string) {
       ? { id: kyc.id, status: kyc.status, submittedAt: kyc.submittedAt }
       : null,
   };
+}
+
+export async function setAdminUserStatus(
+  adminId: string,
+  userId: string,
+  action: "disable" | "enable",
+  meta: AuditMeta = {},
+) {
+  if (action === "disable") {
+    await requireAdminPermission(adminId, "users.disable");
+  } else {
+    await requireAdminPermission(adminId, "users.update");
+  }
+
+  const db = getDb();
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!existing) throw new AppError("NOT_FOUND", "User not found.", 404);
+
+  let nextStatus: string;
+  let auditAction: string;
+
+  if (action === "disable") {
+    if (existing.status === "SUSPENDED" || existing.status === "CLOSED") {
+      return existing;
+    }
+    nextStatus = "SUSPENDED";
+    auditAction = "USER_DISABLED";
+  } else {
+    if (existing.status !== "SUSPENDED") {
+      throw new AppError(
+        "INVALID_STATE",
+        "Only suspended users can be enabled.",
+        400,
+      );
+    }
+    const [kyc] = await db
+      .select()
+      .from(verificationRequests)
+      .where(eq(verificationRequests.userId, userId))
+      .orderBy(desc(verificationRequests.createdAt))
+      .limit(1);
+    if (kyc?.status === "APPROVED") nextStatus = "KYC_APPROVED";
+    else if (existing.emailVerifiedAt) nextStatus = "REGISTERED";
+    else nextStatus = "EMAIL_UNVERIFIED";
+    auditAction = "USER_ENABLED";
+  }
+
+  const [updated] = await db
+    .update(users)
+    .set({ status: nextStatus, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning();
+
+  await writeAdminAudit(db, {
+    actorId: adminId,
+    action: auditAction,
+    entityType: "user",
+    entityId: userId,
+    before: { status: existing.status },
+    after: { status: nextStatus },
+    meta,
+  });
+
+  return updated!;
 }

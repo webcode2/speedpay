@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { createStaff, listStaff } from "@/services/admin-staff-service";
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
           password: body.password ?? "",
           roleCodes: body.roleCodes ?? [],
           status: body.status,
-        }),
+        }, requestMeta(request)),
       },
       { status: 201 },
     );

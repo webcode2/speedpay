@@ -1,12 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import {
-  auditLogs,
   users,
   verificationDocuments,
   verificationRequests,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { getStorage } from "@/storage";
 
@@ -84,7 +85,7 @@ export async function getKycRequest(adminId: string, requestId: string) {
   return { ...row.request, userEmail: row.userEmail, userStatus: row.userStatus, documents };
 }
 
-export async function approveKyc(adminId: string, requestId: string) {
+export async function approveKyc(adminId: string, requestId: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "kyc.approve");
   const db = getDb();
   const detail = await getKycRequest(adminId, requestId);
@@ -115,14 +116,14 @@ export async function approveKyc(adminId: string, requestId: string) {
     .set({ status: "KYC_APPROVED", updatedAt: now })
     .where(eq(users.id, detail.userId));
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "KYC_APPROVED",
     entityType: "verification_request",
     entityId: requestId,
     before,
     after: { status: "APPROVED" },
+    meta,
   });
 
   return updated!;
@@ -132,6 +133,7 @@ export async function rejectKyc(
   adminId: string,
   requestId: string,
   reason: string,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "kyc.reject");
   if (!reason.trim()) {
@@ -166,15 +168,15 @@ export async function rejectKyc(
     .set({ status: "KYC_REJECTED", updatedAt: now })
     .where(eq(users.id, detail.userId));
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "KYC_REJECTED",
     entityType: "verification_request",
     entityId: requestId,
     before,
     after: { status: "REJECTED", reason: reason.trim() },
     reason: reason.trim(),
+    meta,
   });
 
   return updated!;
@@ -184,6 +186,7 @@ export async function requestKycInfo(
   adminId: string,
   requestId: string,
   reason: string,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "kyc.approve");
   if (!reason.trim()) {
@@ -213,15 +216,15 @@ export async function requestKycInfo(
     .where(eq(verificationRequests.id, requestId))
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "KYC_REQUIRES_INFORMATION",
     entityType: "verification_request",
     entityId: requestId,
     before,
     after: { status: "REQUIRES_INFORMATION", reason: reason.trim() },
     reason: reason.trim(),
+    meta,
   });
 
   return updated!;

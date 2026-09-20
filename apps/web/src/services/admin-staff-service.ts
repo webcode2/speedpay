@@ -2,12 +2,13 @@ import { and, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import {
   adminRoles,
   admins,
-  auditLogs,
   roles,
 } from "@solar/database/schema";
 import { hashPassword } from "@/auth/password";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import {
   getAdminRoleCodes,
   requireAdminPermission,
@@ -128,6 +129,7 @@ export async function createStaff(
     roleCodes: string[];
     status?: string;
   },
+  meta: AuditMeta = {},
 ) {
   await requireAdminPermission(actorId, "staff.create");
   const email = input.email.trim().toLowerCase();
@@ -167,9 +169,8 @@ export async function createStaff(
     await tx.insert(adminRoles).values(
       roleRows.map((r) => ({ adminId: row!.id, roleId: r.id })),
     );
-    await tx.insert(auditLogs).values({
+    await writeAdminAudit(tx, {
       actorId,
-      actorType: "ADMIN",
       action: "STAFF_CREATED",
       entityType: "admin",
       entityId: row!.id,
@@ -179,7 +180,8 @@ export async function createStaff(
         status,
         roles: roleRows.map((r) => r.code),
       },
-    });
+    meta,
+  });
     return row!;
   });
 
@@ -195,6 +197,7 @@ export async function updateStaff(
     status?: string;
     roleCodes?: string[];
   },
+  meta: AuditMeta = {},
 ) {
   await requireAdminPermission(actorId, "staff.update");
   const db = getDb();
@@ -247,9 +250,8 @@ export async function updateStaff(
         roleRows.map((r) => ({ adminId: id, roleId: r.id })),
       );
     }
-    await tx.insert(auditLogs).values({
+    await writeAdminAudit(tx, {
       actorId,
-      actorType: "ADMIN",
       action: "STAFF_UPDATED",
       entityType: "admin",
       entityId: id,
@@ -264,7 +266,8 @@ export async function updateStaff(
         roles: roleRows ? roleRows.map((r) => r.code) : beforeRoles,
         passwordChanged: Boolean(input.password),
       },
-    });
+    meta,
+  });
   });
 
   return getStaff(actorId, id);

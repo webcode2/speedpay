@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { uploadProjectDocument } from "@/services/admin-project-service";
@@ -27,6 +27,7 @@ export async function POST(request: Request, { params }: Params) {
       fileName: file.name || "upload.bin",
       contentType: file.type || "application/octet-stream",
       bytes,
+      meta: requestMeta(request),
     });
     return apiSuccess({
       document: {

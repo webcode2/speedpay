@@ -1,6 +1,5 @@
 import { and, desc, eq, lte, sql } from "drizzle-orm";
 import {
-  auditLogs,
   investmentAccruals,
   investmentPackages,
   investments,
@@ -15,6 +14,8 @@ import {
 import { calculateInvestmentReturn } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { safeNotify } from "@/services/notification-service";
 import { ensureWallet } from "@/services/wallet-service";
@@ -185,7 +186,9 @@ export async function processMaturity(input: {
   adminId: string;
   investmentId: string;
   idempotencyKey?: string;
+  meta?: AuditMeta;
 }) {
+  const meta = input.meta ?? {};
   await requirePerm(input.adminId, "maturities.process");
   const db = getDb();
 
@@ -336,9 +339,8 @@ export async function processMaturity(input: {
       })
       .returning();
 
-    await tx.insert(auditLogs).values({
+    await writeAdminAudit(tx, {
       actorId: input.adminId,
-      actorType: "ADMIN",
       action: "MATURITY_PROCESSED",
       entityType: "maturity",
       entityId: created!.id,
@@ -349,7 +351,8 @@ export async function processMaturity(input: {
         priorAccrued,
         walletTransactionId: txRow!.id,
       },
-    });
+    meta,
+  });
 
     return { maturity: created!, fresh: true as const };
   });

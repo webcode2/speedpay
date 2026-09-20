@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin(request);
     const body = createSchema.parse(await request.json());
-    const project = await createProject(admin.id, body);
+    const project = await createProject(admin.id, body, requestMeta(request));
     return apiSuccess({ project });
   } catch (error) {
     return handleRouteError(error);

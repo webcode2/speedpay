@@ -63,7 +63,12 @@ export const ADMIN_NAV_LINKS = [
     label: "Staff",
     permissions: ["staff.create", "staff.update"],
   },
-  { href: "/admin/roles", label: "Roles", permissions: ["roles.read"] },
+  {
+    href: "/admin/roles",
+    label: "Roles",
+    permissions: ["roles.read"],
+  },
+  { href: "/admin/audit", label: "Audit", permissions: ["audit.read"] },
 ] as const;
 
 export function AdminNav() {

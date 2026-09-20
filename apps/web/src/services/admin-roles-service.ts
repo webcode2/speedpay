@@ -1,12 +1,13 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import {
-  auditLogs,
   permissions,
   rolePermissions,
   roles,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { requireAdminPermission } from "@/permissions/check";
 
 export async function listPermissions(adminId: string) {
@@ -74,6 +75,7 @@ export async function updateRolePermissions(
   actorId: string,
   id: string,
   permissionCodes: string[],
+  meta: AuditMeta = {},
 ) {
   await requireAdminPermission(actorId, "roles.update");
   const db = getDb();
@@ -117,15 +119,15 @@ export async function updateRolePermissions(
       .update(roles)
       .set({ updatedAt: new Date() })
       .where(eq(roles.id, id));
-    await tx.insert(auditLogs).values({
+    await writeAdminAudit(tx, {
       actorId,
-      actorType: "ADMIN",
       action: "ROLE_PERMISSIONS_UPDATED",
       entityType: "role",
       entityId: id,
       before: { permissions: before.permissions },
       after: { permissions: permRows.map((p) => p.code).sort() },
-    });
+    meta,
+  });
   });
 
   return getRole(actorId, id);

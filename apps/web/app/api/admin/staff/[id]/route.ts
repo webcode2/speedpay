@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { getStaff, updateStaff } from "@/services/admin-staff-service";
@@ -31,7 +31,7 @@ export async function PATCH(request: Request, context: Ctx) {
       roleCodes?: string[];
     };
     return apiSuccess({
-      staff: await updateStaff(admin.id, id, body),
+      staff: await updateStaff(admin.id, id, body, requestMeta(request)),
     });
   } catch (error) {
     return handleRouteError(error);

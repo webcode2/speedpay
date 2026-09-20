@@ -1,12 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import {
-  auditLogs,
   investmentPackages,
   packageVersions,
   projects,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 
 export type PackageInput = {
@@ -166,7 +167,7 @@ async function snapshotVersion(
   return ver!;
 }
 
-export async function createPackage(adminId: string, input: PackageInput) {
+export async function createPackage(adminId: string, input: PackageInput, meta: AuditMeta = {}) {
   await requirePerm(adminId, "packages.create");
   validateTerms(input);
   await ensureProject(input.projectId);
@@ -190,13 +191,13 @@ export async function createPackage(adminId: string, input: PackageInput) {
     })
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_CREATED",
     entityType: "investment_package",
     entityId: created!.id,
     after: { status: "DRAFT", name: created!.name },
+    meta,
   });
 
   return toView(created!);
@@ -206,6 +207,7 @@ export async function updatePackage(
   adminId: string,
   id: string,
   input: PackageInput,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "packages.update");
   validateTerms(input);
@@ -263,20 +265,20 @@ export async function updatePackage(
     await snapshotVersion(id, updated!, input.terms ?? null);
   }
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_UPDATED",
     entityType: "investment_package",
     entityId: id,
     before: { name: detail.name, status: detail.status },
     after: { name: updated!.name, status: updated!.status },
+    meta,
   });
 
   return getPackage(adminId, id);
 }
 
-export async function activatePackage(adminId: string, id: string) {
+export async function activatePackage(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "packages.activate");
   const detail = await getPackage(adminId, id);
   if (!["DRAFT", "PAUSED", "FULL"].includes(detail.status)) {
@@ -299,20 +301,20 @@ export async function activatePackage(adminId: string, id: string) {
     await snapshotVersion(id, updated!, null);
   }
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_ACTIVATED",
     entityType: "investment_package",
     entityId: id,
     before: { status: detail.status },
     after: { status: next },
+    meta,
   });
 
   return getPackage(adminId, id);
 }
 
-export async function pausePackage(adminId: string, id: string) {
+export async function pausePackage(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "packages.pause");
   const detail = await getPackage(adminId, id);
   if (!["OPEN", "FULL"].includes(detail.status)) {
@@ -324,19 +326,19 @@ export async function pausePackage(adminId: string, id: string) {
     .set({ status: "PAUSED", updatedAt: new Date() })
     .where(eq(investmentPackages.id, id))
     .returning();
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_PAUSED",
     entityType: "investment_package",
     entityId: id,
     before: { status: detail.status },
     after: { status: "PAUSED" },
+    meta,
   });
   return toView(updated!);
 }
 
-export async function closePackage(adminId: string, id: string) {
+export async function closePackage(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "packages.update");
   const detail = await getPackage(adminId, id);
   if (!["OPEN", "FULL", "PAUSED"].includes(detail.status)) {
@@ -348,19 +350,19 @@ export async function closePackage(adminId: string, id: string) {
     .set({ status: "CLOSED", updatedAt: new Date() })
     .where(eq(investmentPackages.id, id))
     .returning();
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_CLOSED",
     entityType: "investment_package",
     entityId: id,
     before: { status: detail.status },
     after: { status: "CLOSED" },
+    meta,
   });
   return toView(updated!);
 }
 
-export async function archivePackage(adminId: string, id: string) {
+export async function archivePackage(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "packages.update");
   const detail = await getPackage(adminId, id);
   if (!["DRAFT", "CLOSED"].includes(detail.status)) {
@@ -376,14 +378,14 @@ export async function archivePackage(adminId: string, id: string) {
     .set({ status: "ARCHIVED", updatedAt: new Date() })
     .where(eq(investmentPackages.id, id))
     .returning();
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PACKAGE_ARCHIVED",
     entityType: "investment_package",
     entityId: id,
     before: { status: detail.status },
     after: { status: "ARCHIVED" },
+    meta,
   });
   return toView(updated!);
 }

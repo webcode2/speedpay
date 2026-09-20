@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import {
-  auditLogs,
   projectDocuments,
   projects,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { getStorage } from "@/storage";
 
@@ -101,7 +102,7 @@ export async function getProject(adminId: string, id: string) {
   return { project, documents };
 }
 
-export async function createProject(adminId: string, input: ProjectInput) {
+export async function createProject(adminId: string, input: ProjectInput, meta: AuditMeta = {}) {
   await requirePerm(adminId, "projects.create");
   if (!input.name.trim()) {
     throw new AppError("VALIDATION_ERROR", "Name is required.", 400);
@@ -120,13 +121,13 @@ export async function createProject(adminId: string, input: ProjectInput) {
     })
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PROJECT_CREATED",
     entityType: "project",
     entityId: created!.id,
     after: { status: "DRAFT", name: created!.name },
+    meta,
   });
 
   return created!;
@@ -136,6 +137,7 @@ export async function updateProject(
   adminId: string,
   id: string,
   input: ProjectInput,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "projects.update");
   const project = await getProjectOrThrow(id);
@@ -158,14 +160,14 @@ export async function updateProject(
     .where(eq(projects.id, id))
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PROJECT_UPDATED",
     entityType: "project",
     entityId: id,
     before: { name: project.name },
     after: { name: updated!.name },
+    meta,
   });
 
   return updated!;
@@ -175,6 +177,7 @@ export async function transitionProject(
   adminId: string,
   id: string,
   action: keyof typeof PROJECT_TRANSITIONS,
+  meta: AuditMeta = {},
 ) {
   const project = await getProjectOrThrow(id);
   const rule = assertProjectTransition(action, project.status);
@@ -188,14 +191,14 @@ export async function transitionProject(
     .where(eq(projects.id, id))
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: `PROJECT_${action.toUpperCase()}`,
     entityType: "project",
     entityId: id,
     before: { status: project.status },
     after: { status: rule.to },
+    meta,
   });
 
   return updated!;
@@ -209,7 +212,9 @@ export async function uploadProjectDocument(input: {
   contentType: string;
   bytes: Buffer;
   setAsPrimaryImage?: boolean;
+  meta?: AuditMeta;
 }) {
+  const meta = input.meta ?? {};
   await requirePerm(input.adminId, "projects.update");
   if (!["IMAGE", "DOCUMENT"].includes(input.kind)) {
     throw new AppError("VALIDATION_ERROR", "kind must be IMAGE or DOCUMENT.", 400);
@@ -243,13 +248,13 @@ export async function uploadProjectDocument(input: {
       .where(eq(projects.id, input.projectId));
   }
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: input.adminId,
-    actorType: "ADMIN",
     action: "PROJECT_DOCUMENT_UPLOADED",
     entityType: "project",
     entityId: input.projectId,
     after: { documentId: doc!.id, kind: input.kind },
+    meta,
   });
 
   return doc!;

@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles
+- Staff: `/admin` dashboard, users, KYC, payouts, projects, packages, investments, deposits, withdrawals, returns, maturities, reinvestments, staff, roles, audit
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -83,7 +83,9 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | POST | `/api/verification/documents` | Multipart document upload |
 | GET | `/api/admin/dashboard` | Ops counts |
 | GET | `/api/admin/users` | List/search users (`users.read`) |
-| GET | `/api/admin/users/[id]` | User detail |
+| GET/PATCH | `/api/admin/users/[id]` | User detail / suspend|enable |
+| GET | `/api/admin/audit` | Audit log list (`audit.read`) |
+| GET | `/api/admin/audit/[id]` | Audit detail |
 | GET | `/api/admin/investments` | List investments |
 | GET | `/api/admin/investments/[id]` | Investment detail |
 | GET | `/api/admin/deposits` | List deposits (`deposits.read`) |
@@ -235,3 +237,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 19 design](docs/superpowers/specs/2026-09-20-chunk-19-notifications-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-19-notifications.md)
 - [Chunk 20 design](docs/superpowers/specs/2026-09-20-chunk-20-admin-ops-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-20-admin-ops.md)
 - [Chunk 21 design](docs/superpowers/specs/2026-09-20-chunk-21-rbac-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-21-rbac.md)
+- [Chunk 22 design](docs/superpowers/specs/2026-09-20-chunk-22-audit-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-22-audit.md)

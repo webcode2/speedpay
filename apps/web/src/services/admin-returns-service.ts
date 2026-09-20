@@ -1,6 +1,5 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import {
-  auditLogs,
   investmentAccruals,
   investmentPackages,
   investments,
@@ -14,6 +13,8 @@ import {
 import { calculateInvestmentReturn } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { ensureWallet } from "@/services/wallet-service";
 
@@ -175,7 +176,9 @@ export async function materializeReturn(input: {
   adminId: string;
   investmentId: string;
   idempotencyKey?: string;
+  meta?: AuditMeta;
 }) {
+  const meta = input.meta ?? {};
   await requirePerm(input.adminId, "returns.calculate");
   const db = getDb();
   const now = new Date();
@@ -310,8 +313,7 @@ export async function materializeReturn(input: {
       })
       .returning();
 
-    await tx.insert(auditLogs).values({
-      actorType: "ADMIN",
+    await writeAdminAudit(tx, {
       actorId: input.adminId,
       action: "RETURN_MATERIALIZED",
       entityType: "investment_accrual",
@@ -322,7 +324,8 @@ export async function materializeReturn(input: {
         deltaAccrued: preview.deltaAccrued,
         accruedReturn: preview.accruedReturn,
       },
-    });
+    meta,
+  });
 
     return created!;
   });

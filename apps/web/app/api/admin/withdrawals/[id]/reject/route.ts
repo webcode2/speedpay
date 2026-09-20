@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { rejectWithdrawal } from "@/services/admin-withdrawal-service";
@@ -17,7 +17,7 @@ export async function POST(request: Request, { params }: Params) {
       throw new AppError("VALIDATION_ERROR", "reason is required.", 400);
     }
     return apiSuccess({
-      withdrawal: await rejectWithdrawal(admin.id, id, body.reason),
+      withdrawal: await rejectWithdrawal(admin.id, id, body.reason, requestMeta(request)),
     });
   } catch (error) {
     return handleRouteError(error);

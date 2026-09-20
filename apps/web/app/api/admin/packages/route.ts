@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin(request);
     const body = bodySchema.parse(await request.json());
-    return apiSuccess({ package: await createPackage(admin.id, body) });
+    return apiSuccess({ package: await createPackage(admin.id, body, requestMeta(request)) });
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import { approveWithdrawal } from "@/services/admin-withdrawal-service";
@@ -13,7 +13,7 @@ export async function POST(request: Request, { params }: Params) {
     const admin = await getCurrentAdmin(token);
     const { id } = await params;
     return apiSuccess({
-      withdrawal: await approveWithdrawal(admin.id, id),
+      withdrawal: await approveWithdrawal(admin.id, id, requestMeta(request)),
     });
   } catch (error) {
     return handleRouteError(error);

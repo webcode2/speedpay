@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import {
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const { id } = await params;
     const admin = await requireAdmin(request);
     const body = patchSchema.parse(await request.json());
-    const project = await updateProject(admin.id, id, body);
+    const project = await updateProject(admin.id, id, body, requestMeta(request));
     return apiSuccess({ project });
   } catch (error) {
     return handleRouteError(error);

@@ -1,5 +1,5 @@
 import { apiSuccess, handleRouteError } from "@/auth/http";
-import { getAdminBearerOrCookieToken } from "@/auth/request";
+import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import {
@@ -33,6 +33,7 @@ export async function PATCH(request: Request, context: Ctx) {
         admin.id,
         id,
         body.permissionCodes ?? [],
+        requestMeta(request),
       ),
     });
   } catch (error) {

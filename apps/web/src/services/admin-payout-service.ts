@@ -2,6 +2,8 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { auditLogs, payoutAccounts, users } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import type { AuditMeta } from "@/audit/write-admin-audit";
+import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { adminHasPermission } from "@/permissions/check";
 import { maskAccountNumber } from "@/services/payout-account-service";
 
@@ -89,7 +91,7 @@ export async function getPayoutDetail(adminId: string, id: string) {
   };
 }
 
-export async function approvePayout(adminId: string, id: string) {
+export async function approvePayout(adminId: string, id: string, meta: AuditMeta = {}) {
   await requirePerm(adminId, "payouts.approve");
   const detail = await getPayoutDetail(adminId, id);
   if (detail.status !== "PENDING") {
@@ -114,14 +116,14 @@ export async function approvePayout(adminId: string, id: string) {
     .where(eq(payoutAccounts.id, id))
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PAYOUT_APPROVED",
     entityType: "payout_account",
     entityId: id,
     before: { status: detail.status },
     after: { status: "VERIFIED" },
+    meta,
   });
 
   return updated!;
@@ -131,6 +133,7 @@ export async function rejectPayout(
   adminId: string,
   id: string,
   reason: string,
+  meta: AuditMeta = {},
 ) {
   await requirePerm(adminId, "payouts.reject");
   if (!reason.trim()) {
@@ -159,15 +162,15 @@ export async function rejectPayout(
     .where(eq(payoutAccounts.id, id))
     .returning();
 
-  await db.insert(auditLogs).values({
+  await writeAdminAudit(db, {
     actorId: adminId,
-    actorType: "ADMIN",
     action: "PAYOUT_REJECTED",
     entityType: "payout_account",
     entityId: id,
     before: { status: detail.status },
     after: { status: "REJECTED", reason: reason.trim() },
     reason: reason.trim(),
+    meta,
   });
 
   return updated!;
