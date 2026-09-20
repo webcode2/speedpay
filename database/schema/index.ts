@@ -15,5 +15,7 @@ export { verificationDocuments } from "./verification-documents";
 export { payoutAccounts } from "./payout-accounts";
 export { projects } from "./projects";
 export { projectDocuments } from "./project-documents";
+export { investmentPackages } from "./investment-packages";
+export { packageVersions } from "./package-versions";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";

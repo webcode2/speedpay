@@ -37,6 +37,9 @@ export default function AdminProjectsPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold">Projects</h1>
         <div className="flex gap-3 text-sm">
+          <Link className="text-emerald-400" href="/admin/packages">
+            Packages
+          </Link>
           <Link className="text-emerald-400" href="/admin/projects/new">
             New
           </Link>

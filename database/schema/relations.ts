@@ -6,6 +6,8 @@ import { permissions } from "./permissions";
 import { payoutAccounts } from "./payout-accounts";
 import { projectDocuments } from "./project-documents";
 import { projects } from "./projects";
+import { investmentPackages } from "./investment-packages";
+import { packageVersions } from "./package-versions";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -119,6 +121,7 @@ export const payoutAccountsRelations = relations(payoutAccounts, ({ one }) => ({
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   documents: many(projectDocuments),
+  packages: many(investmentPackages),
 }));
 
 export const projectDocumentsRelations = relations(
@@ -130,3 +133,21 @@ export const projectDocumentsRelations = relations(
     }),
   }),
 );
+
+export const investmentPackagesRelations = relations(
+  investmentPackages,
+  ({ one, many }) => ({
+    project: one(projects, {
+      fields: [investmentPackages.projectId],
+      references: [projects.id],
+    }),
+    versions: many(packageVersions),
+  }),
+);
+
+export const packageVersionsRelations = relations(packageVersions, ({ one }) => ({
+  package: one(investmentPackages, {
+    fields: [packageVersions.packageId],
+    references: [investmentPackages.id],
+  }),
+}));

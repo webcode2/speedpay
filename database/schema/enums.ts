@@ -61,3 +61,18 @@ export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 export const PROJECT_DOCUMENT_KINDS = ["IMAGE", "DOCUMENT"] as const;
 
 export type ProjectDocumentKind = (typeof PROJECT_DOCUMENT_KINDS)[number];
+
+export const PACKAGE_STATUSES = [
+  "DRAFT",
+  "OPEN",
+  "FULL",
+  "PAUSED",
+  "CLOSED",
+  "ARCHIVED",
+] as const;
+
+export type PackageStatus = (typeof PACKAGE_STATUSES)[number];
+
+export const RETURN_TYPES = ["FIXED_RETURN", "FIXED_PROFIT"] as const;
+
+export type ReturnType = (typeof RETURN_TYPES)[number];

@@ -23,7 +23,7 @@ pnpm --filter @solar/web dev
 - App: [http://localhost:3000](http://localhost:3000)
 - Health: [http://localhost:3000/api/health](http://localhost:3000/api/health)
 - Investor: `/login`, `/register`, `/dashboard`, `/profile`, `/verification`
-- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`
+- Staff: `/admin/login`, `/admin/kyc`, `/admin/payouts`, `/admin/projects`, `/admin/packages`
 - Investors are **mobile-first** (Flutter); payout accounts have no investor web UI
 
 ### Flutter mobile
@@ -109,6 +109,14 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | POST | `/api/admin/projects/[id]/documents` | Multipart upload (`kind`, `file`) |
 | GET | `/api/admin/projects/[id]/documents/[docId]` | Stream file |
 
+## Admin packages API
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/api/admin/packages` | List / create draft |
+| GET/PATCH | `/api/admin/packages/[id]` | Detail / edit (snapshots version if financial terms change while live) |
+| POST | `/api/admin/packages/[id]/activate\|pause\|close\|archive` | Lifecycle |
+
 ## Scripts
 
 | Script | Description |
@@ -138,3 +146,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 04 design](docs/superpowers/specs/2026-09-20-chunk-04-profile-verification-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-04-profile-verification.md)
 - [Chunk 05 design](docs/superpowers/specs/2026-09-20-chunk-05-payout-accounts-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-05-payout-accounts.md)
 - [Chunk 06 design](docs/superpowers/specs/2026-09-20-chunk-06-projects-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-06-projects.md)
+- [Chunk 07 design](docs/superpowers/specs/2026-09-20-chunk-07-packages-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-07-packages.md)
