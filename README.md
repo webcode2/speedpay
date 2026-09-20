@@ -34,7 +34,7 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
 ```
 
-Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, marketplace browse/quote, and wallet are in the app. KYC document upload remains on web for Chunk 04. Deposits/purchases come in later chunks.
+Use `http://localhost:3000` for iOS simulator. Auth uses Bearer tokens stored in secure storage. Profile, verification, payout accounts, marketplace, wallet, and mock deposits are in the app. Purchase comes in later chunks.
 
 ### Seeded admin (local dev only)
 
@@ -133,6 +133,16 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 | GET | `/api/wallet/transactions` | History |
 | GET | `/api/wallet/transactions/[id]` | Detail |
 
+## Deposits API (investor)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/api/deposits` | List / create (amount in minor units) |
+| GET | `/api/deposits/[id]` | Detail |
+| POST | `/api/deposits/[id]/verify` | Confirm mock/PSP payment → credit wallet |
+
+`PAYMENT_PROVIDER=mock` by default. Verify is idempotent once `SUCCESS`.
+
 ## Scripts
 
 | Script | Description |
@@ -166,3 +176,4 @@ Staff sessions use separate cookies/tokens via `/api/admin/auth/*`.
 - [Chunk 07 design](docs/superpowers/specs/2026-09-20-chunk-07-packages-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-07-packages.md)
 - [Chunk 08 design](docs/superpowers/specs/2026-09-20-chunk-08-marketplace-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-08-marketplace.md)
 - [Chunk 09 design](docs/superpowers/specs/2026-09-20-chunk-09-wallet-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-09-wallet.md)
+- [Chunk 10 design](docs/superpowers/specs/2026-09-20-chunk-10-deposits-design.md) / [plan](docs/superpowers/plans/2026-09-20-chunk-10-deposits.md)

@@ -21,5 +21,6 @@ export { wallets } from "./wallets";
 export { ledgerAccounts } from "./ledger-accounts";
 export { ledgerEntries } from "./ledger-entries";
 export { walletTransactions } from "./wallet-transactions";
+export { deposits } from "./deposits";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";

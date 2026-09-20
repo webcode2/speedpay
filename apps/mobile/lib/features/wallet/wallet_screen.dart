@@ -89,6 +89,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                   ],
+                  FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/wallet/deposit'),
+                    child: const Text('Deposit'),
+                  ),
                   const SizedBox(height: 24),
                   Text('Transactions', style: Theme.of(context).textTheme.titleLarge),
                   if (_txs.isEmpty) const Text('No transactions yet.'),

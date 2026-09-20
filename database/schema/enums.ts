@@ -100,3 +100,14 @@ export const WALLET_TX_STATUSES = [
 ] as const;
 
 export type WalletTxStatus = (typeof WALLET_TX_STATUSES)[number];
+
+export const DEPOSIT_STATUSES = [
+  "PENDING",
+  "PROCESSING",
+  "SUCCESS",
+  "FAILED",
+  "CANCELLED",
+  "REFUNDED",
+] as const;
+
+export type DepositStatus = (typeof DEPOSIT_STATUSES)[number];

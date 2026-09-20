@@ -70,6 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () =>
+                            Navigator.of(context).pushNamed('/wallet/deposit'),
+                        child: const Text('Deposit'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
                             Navigator.of(context).pushNamed('/profile'),
                         child: const Text('Profile'),
                       ),

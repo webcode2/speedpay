@@ -12,6 +12,7 @@ import { ledgerAccounts } from "./ledger-accounts";
 import { ledgerEntries } from "./ledger-entries";
 import { walletTransactions } from "./wallet-transactions";
 import { wallets } from "./wallets";
+import { deposits } from "./deposits";
 import { rolePermissions } from "./role-permissions";
 import { roles } from "./roles";
 import { userProfiles } from "./user-profiles";
@@ -32,6 +33,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [wallets.userId],
   }),
+  deposits: many(deposits),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -196,3 +198,14 @@ export const walletTransactionsRelations = relations(
     }),
   }),
 );
+
+export const depositsRelations = relations(deposits, ({ one }) => ({
+  user: one(users, {
+    fields: [deposits.userId],
+    references: [users.id],
+  }),
+  walletTransaction: one(walletTransactions, {
+    fields: [deposits.walletTransactionId],
+    references: [walletTransactions.id],
+  }),
+}));

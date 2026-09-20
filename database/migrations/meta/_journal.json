@@ -57,6 +57,13 @@
       "when": 1789910376367,
       "tag": "0007_regular_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789911055350,
+      "tag": "0008_black_the_fury",
+      "breakpoints": true
     }
   ]
 }
