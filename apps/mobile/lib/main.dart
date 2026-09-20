@@ -8,6 +8,7 @@ import 'core/auth/session_store.dart';
 import 'features/auth/forgot_password_screen.dart';
 import 'features/auth/home_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/payout_accounts_screen.dart';
 import 'features/auth/profile_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/reset_password_screen.dart';
@@ -61,6 +62,7 @@ class SolarInvestmentApp extends StatelessWidget {
         '/home': (_) => const HomeScreen(),
         '/profile': (_) => const ProfileScreen(),
         '/verification': (_) => const VerificationScreen(),
+        '/payout-accounts': (_) => const PayoutAccountsScreen(),
       },
       initialRoute: '/',
     );

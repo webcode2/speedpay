@@ -124,6 +124,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.of(context).pushNamed('/verification'),
               child: const Text('Verification'),
             ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/payout-accounts'),
+              child: const Text('Payout accounts'),
+            ),
           ],
         ),
       ),
