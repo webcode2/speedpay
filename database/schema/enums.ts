@@ -111,3 +111,14 @@ export const DEPOSIT_STATUSES = [
 ] as const;
 
 export type DepositStatus = (typeof DEPOSIT_STATUSES)[number];
+
+export const INVESTMENT_STATUSES = [
+  "PENDING",
+  "ACTIVE",
+  "MATURED",
+  "REINVESTED",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+export type InvestmentStatus = (typeof INVESTMENT_STATUSES)[number];

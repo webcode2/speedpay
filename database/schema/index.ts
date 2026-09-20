@@ -22,5 +22,7 @@ export { ledgerAccounts } from "./ledger-accounts";
 export { ledgerEntries } from "./ledger-entries";
 export { walletTransactions } from "./wallet-transactions";
 export { deposits } from "./deposits";
+export { investments } from "./investments";
+export { investmentLots } from "./investment-lots";
 export { auditLogs } from "./audit-logs";
 export * from "./relations";

@@ -19,7 +19,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
   final _lots = TextEditingController(text: '1');
   Map<String, dynamic>? _quote;
   String? _error;
+  String? _message;
   bool _loading = true;
+  bool _purchasing = false;
 
   ApiClient _client() {
     final store = context.read<SessionStore>();
@@ -81,6 +83,39 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     }
   }
 
+  Future<void> _purchase() async {
+    final count = int.tryParse(_lots.text.trim());
+    if (count == null) {
+      setState(() => _error = 'Enter a valid lot count');
+      return;
+    }
+    setState(() {
+      _purchasing = true;
+      _error = null;
+      _message = null;
+    });
+    try {
+      final key =
+          'purchase-${widget.packageId}-$count-${DateTime.now().millisecondsSinceEpoch}';
+      final data = await _client().post(
+        '/api/marketplace/packages/${widget.packageId}/purchase',
+        auth: true,
+        body: {'lotCount': count, 'idempotencyKey': key},
+      );
+      final investment = data['investment'] as Map?;
+      setState(() {
+        _message =
+            'Purchase successful · investment ${investment?['id'] ?? ''}';
+        _purchasing = false;
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        _error = e.message;
+        _purchasing = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -94,6 +129,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
         children: [
           if (_error != null)
             Text(_error!, style: const TextStyle(color: Colors.red)),
+          if (_message != null) Text(_message!),
           if (pkg != null) ...[
             Text(pkg['description'] as String? ?? '', style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 12),
@@ -120,8 +156,8 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
             Text('Maturity: ${_quote!['maturityAt']}'),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: null,
-              child: const Text('Payment coming soon'),
+              onPressed: _purchasing ? null : _purchase,
+              child: Text(_purchasing ? 'Purchasing…' : 'Confirm purchase (wallet)'),
             ),
           ],
         ],
