@@ -1,8 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import {
+  AdminInput,
+  AdminPageHeader,
+  AdminTable,
+  RowLink,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -44,52 +48,65 @@ export default function AdminAuditPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Audit log</h1>
-      <AdminNav />
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void load();
-        }}
-      >
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Action (e.g. KYC_APPROVED)"
-          value={action}
-          onChange={(e) => setAction(e.target.value)}
-        />
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Entity type"
-          value={entityType}
-          onChange={(e) => setEntityType(e.target.value)}
-        />
-        <button type="submit" className="rounded bg-emerald-700 px-3 py-2">
-          Filter
-        </button>
-      </form>
-      <p className="text-sm text-slate-400">{total} events</p>
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link
-              className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/audit/${item.id}`}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Audit log"
+        subtitle={`${total} events`}
+        actions={
+          <form
+            className="flex flex-wrap gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void load();
+            }}
+          >
+            <AdminInput
+              placeholder="Action"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+            />
+            <AdminInput
+              placeholder="Entity type"
+              value={entityType}
+              onChange={(e) => setEntityType(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--sp-navy)] px-4 py-2 text-sm font-semibold text-white"
             >
-              <span className="font-medium">{item.action}</span>
-              <span className="text-sm text-slate-400">
-                {item.entityType}/{item.entityId}
-                {item.ipAddress ? ` · ${item.ipAddress}` : ""}
-                {" · "}
-                {item.createdAt}
-              </span>
-            </Link>
-          </li>
+              Filter
+            </button>
+          </form>
+        }
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={["When", "Action", "Entity", "Actor", "IP", ""]}
+        empty={items.length === 0 ? "No audit events." : undefined}
+      >
+        {items.map((item) => (
+          <tr key={item.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {new Date(item.createdAt).toLocaleString()}
+            </td>
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {item.action}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.entityType}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.actorType}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.ipAddress ?? "—"}
+            </td>
+            <td className="px-4 py-3 text-right">
+              <RowLink href={`/admin/audit/${item.id}`}>Open</RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

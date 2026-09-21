@@ -1,8 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import {
+  AdminPageHeader,
+  AdminTable,
+  RowLink,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -30,28 +33,36 @@ export default function AdminRolesPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Roles</h1>
-      <AdminNav />
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
+    <div className="w-full">
+      <AdminPageHeader
+        title="Roles"
+        subtitle="Permission bundles for staff accounts"
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={["Code", "Name", "Permissions", "Description", ""]}
+        empty={items.length === 0 ? "No roles." : undefined}
+      >
         {items.map((r) => (
-          <li key={r.id}>
-            <Link
-              className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/roles/${r.id}`}
-            >
-              <span className="font-medium">
-                {r.code} — {r.name}
-              </span>
-              <span className="text-sm text-slate-400">
-                {r.permissions.length} permissions
-                {r.description ? ` · ${r.description}` : ""}
-              </span>
-            </Link>
-          </li>
+          <tr key={r.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 font-mono text-sm text-[var(--sp-navy)]">
+              {r.code}
+            </td>
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {r.name}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {r.permissions.length}
+            </td>
+            <td className="max-w-xs truncate px-4 py-3 text-[var(--sp-muted)]">
+              {r.description ?? "—"}
+            </td>
+            <td className="px-4 py-3 text-right">
+              <RowLink href={`/admin/roles/${r.id}`}>Open</RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

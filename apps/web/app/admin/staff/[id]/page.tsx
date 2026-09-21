@@ -91,14 +91,14 @@ export default function StaffDetailPage() {
 
   if (!staff && !error) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10 text-slate-400">
+      <main className="w-full text-[var(--sp-muted)]">
         Loading…
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
+    <main className="flex w-full flex-col gap-4">
       <h1 className="text-3xl font-semibold">{staff?.email ?? "Staff"}</h1>
       <AdminNav />
       {error ? <p className="text-red-400">{error}</p> : null}

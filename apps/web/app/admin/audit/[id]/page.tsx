@@ -39,14 +39,14 @@ export default function AdminAuditDetailPage() {
 
   if (!log) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6">
+      <main className="flex w-full items-center">
         <p className="text-slate-400">{error ?? "Loading…"}</p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
+    <main className="flex w-full flex-col gap-4">
       <Link className="text-sm text-emerald-400" href="/admin/audit">
         ← Audit
       </Link>

@@ -1,9 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
-import { useAdminPermissions } from "../_components/admin-shell";
+import { useEffect, useMemo, useState } from "react";
+import { SETTINGS_CATALOG } from "@/settings/catalog";
 import { hasAnyPermission } from "@/permissions/visibility";
+import { useAdminPermissions } from "../_components/admin-shell";
+import {
+  AdminCard,
+  AdminInput,
+  AdminPageHeader,
+} from "../_components/ui";
 
 type Item = { key: string; value: string; group: string };
 
@@ -17,11 +22,22 @@ const GROUP_LABELS: Record<string, string> = {
   notification: "Notification",
 };
 
+const GROUP_ORDER = [
+  "app",
+  "investment",
+  "deposit",
+  "withdrawal",
+  "returns",
+  "security",
+  "notification",
+];
+
 export default function AdminSettingsPage() {
   const permissions = useAdminPermissions();
   const canUpdate = hasAnyPermission(permissions, ["settings.update"]);
   const [items, setItems] = useState<Item[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [editingGroup, setEditingGroup] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,24 +66,30 @@ export default function AdminSettingsPage() {
       list.push(item);
       map.set(item.group, list);
     }
-    return [...map.entries()];
+    return GROUP_ORDER.filter((g) => map.has(g)).map(
+      (g) => [g, map.get(g)!] as const,
+    );
   }, [items]);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function saveGroup(group: string) {
     if (!canUpdate) return;
     setLoading(true);
     setError(null);
     setMessage(null);
     try {
+      const groupKeys = new Set(
+        SETTINGS_CATALOG.filter((c) => c.group === group).map((c) => c.key),
+      );
       const updates: Record<string, string> = {};
       for (const item of items) {
+        if (!groupKeys.has(item.key)) continue;
         if (draft[item.key] !== item.value) {
           updates[item.key] = draft[item.key] ?? item.value;
         }
       }
       if (Object.keys(updates).length === 0) {
         setMessage("No changes");
+        setEditingGroup(null);
         return;
       }
       const res = await fetch("/api/admin/settings", {
@@ -81,6 +103,7 @@ export default function AdminSettingsPage() {
         return;
       }
       setMessage("Settings saved");
+      setEditingGroup(null);
       await load();
     } catch {
       setError("Network error");
@@ -89,50 +112,97 @@ export default function AdminSettingsPage() {
     }
   }
 
+  function cancelGroup(group: string) {
+    const next = { ...draft };
+    for (const item of items) {
+      if (item.group === group) next[item.key] = item.value;
+    }
+    setDraft(next);
+    setEditingGroup(null);
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">System settings</h1>
-      <AdminNav />
-      {error ? <p className="text-red-400">{error}</p> : null}
-      {message ? <p className="text-emerald-400">{message}</p> : null}
-      <form onSubmit={onSubmit} className="flex flex-col gap-6">
-        {groups.map(([group, list]) => (
-          <fieldset
-            key={group}
-            className="rounded border border-slate-800 p-4"
-          >
-            <legend className="px-1 text-sm font-medium text-slate-300">
-              {GROUP_LABELS[group] ?? group}
-            </legend>
-            <div className="flex flex-col gap-3">
-              {list.map((item) => (
-                <label key={item.key} className="text-sm">
-                  <span className="font-mono text-emerald-300">{item.key}</span>
-                  <input
-                    className="mt-1 w-full rounded border border-slate-600 bg-slate-900 px-3 py-2"
-                    value={draft[item.key] ?? ""}
-                    disabled={!canUpdate}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, [item.key]: e.target.value }))
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ))}
-        {canUpdate ? (
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-fit rounded bg-emerald-700 px-4 py-2"
-          >
-            {loading ? "Saving…" : "Save changes"}
-          </button>
-        ) : (
-          <p className="text-sm text-slate-500">Read-only (missing settings.update)</p>
-        )}
-      </form>
-    </main>
+    <div className="w-full">
+      <AdminPageHeader
+        title="System settings"
+        subtitle="View platform configuration — edit one group at a time"
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      {message ? (
+        <p className="mb-3 text-[var(--sp-lime-deep)]">{message}</p>
+      ) : null}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {groups.map(([group, list]) => {
+          const editing = editingGroup === group;
+          return (
+            <AdminCard key={group}>
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--sp-navy)]">
+                  {GROUP_LABELS[group] ?? group}
+                </h2>
+                {canUpdate && !editing ? (
+                  <button
+                    type="button"
+                    className="rounded-xl border border-[var(--sp-border)] px-3 py-1.5 text-sm font-semibold text-[var(--sp-navy)] hover:bg-[var(--sp-lime-mint)]"
+                    onClick={() => setEditingGroup(group)}
+                  >
+                    Edit
+                  </button>
+                ) : null}
+              </div>
+              <div className="flex flex-col gap-3">
+                {list.map((item) =>
+                  editing ? (
+                    <label key={item.key} className="text-sm">
+                      <span className="font-mono text-xs font-semibold text-[var(--sp-lime-deep)]">
+                        {item.key}
+                      </span>
+                      <AdminInput
+                        className="mt-1 w-full"
+                        value={draft[item.key] ?? ""}
+                        onChange={(e) =>
+                          setDraft((d) => ({
+                            ...d,
+                            [item.key]: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                  ) : (
+                    <div key={item.key} className="flex flex-col gap-0.5">
+                      <span className="font-mono text-xs text-[var(--sp-muted)]">
+                        {item.key}
+                      </span>
+                      <span className="text-sm font-medium text-[var(--sp-navy)]">
+                        {item.value}
+                      </span>
+                    </div>
+                  ),
+                )}
+              </div>
+              {editing ? (
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    className="rounded-xl bg-[var(--sp-navy)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                    onClick={() => void saveGroup(group)}
+                  >
+                    {loading ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-[var(--sp-border)] px-4 py-2 text-sm font-semibold text-[var(--sp-muted)]"
+                    onClick={() => cancelGroup(group)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : null}
+            </AdminCard>
+          );
+        })}
+      </div>
+    </div>
   );
 }

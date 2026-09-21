@@ -1,37 +1,14 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { AdminSidebar } from "./admin-sidebar";
+import {
+  AdminSessionProvider,
+  type AdminMe,
+} from "./admin-session";
 
-type AdminMe = {
-  id: string;
-  email: string;
-  name: string;
-  status: string;
-  roles: string[];
-  permissions: string[];
-};
-
-const AdminSessionContext = createContext<AdminMe | null>(null);
-
-export function useAdminSession(): AdminMe {
-  const ctx = useContext(AdminSessionContext);
-  if (!ctx) {
-    throw new Error("useAdminSession requires AdminShell");
-  }
-  return ctx;
-}
-
-export function useAdminPermissions(): string[] {
-  const ctx = useContext(AdminSessionContext);
-  return ctx?.permissions ?? [];
-}
+export { useAdminSession, useAdminPermissions } from "./admin-session";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -39,6 +16,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const isLogin = pathname === "/admin/login";
   const [admin, setAdmin] = useState<AdminMe | null>(null);
   const [ready, setReady] = useState(isLogin);
+  const [badges, setBadges] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (isLogin) {
@@ -67,18 +45,62 @@ export function AdminShell({ children }: { children: ReactNode }) {
     };
   }, [isLogin, router, pathname]);
 
+  useEffect(() => {
+    if (isLogin || !admin) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/admin/dashboard");
+        const json = await res.json();
+        if (!json.success || cancelled) return;
+        const d = json.data.dashboard;
+        setBadges({
+          "/admin/kyc": d.kycPending ?? 0,
+          "/admin/deposits": d.pendingDeposits ?? 0,
+          "/admin/withdrawals": d.pendingWithdrawals ?? 0,
+          "/admin/payouts": d.pendingPayoutAccounts ?? 0,
+        });
+      } catch {
+        /* ignore badge failures */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLogin, admin]);
+
   if (isLogin) return <>{children}</>;
   if (!ready || !admin) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6">
-        <p className="text-slate-400">Checking staff session…</p>
+      <main className="admin-app flex min-h-screen items-center justify-center px-6">
+        <p className="text-[var(--sp-muted)]">Checking staff session…</p>
       </main>
     );
   }
 
   return (
-    <AdminSessionContext.Provider value={admin}>
-      {children}
-    </AdminSessionContext.Provider>
+    <AdminSessionProvider admin={admin}>
+      <div className="admin-app flex min-h-screen">
+        <AdminSidebar badges={badges} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center justify-between gap-4 border-b border-[var(--sp-border)] bg-white px-6 py-4">
+            <div className="min-w-0 flex-1">
+              <input
+                className="w-full max-w-xl rounded-xl border border-[var(--sp-border)] bg-[var(--sp-surface)] px-4 py-2.5 text-sm text-[var(--sp-text)] outline-none ring-[var(--sp-lime)] placeholder:text-[var(--sp-muted)] focus:ring-2"
+                placeholder="Search users, KYC, packages…"
+                readOnly
+              />
+            </div>
+            <a
+              href="/admin/packages/new"
+              className="shrink-0 rounded-xl bg-[var(--sp-lime)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--sp-lime-deep)]"
+            >
+              + New package
+            </a>
+          </header>
+          <div className="flex-1 overflow-auto p-6">{children}</div>
+        </div>
+      </div>
+    </AdminSessionProvider>
   );
 }

@@ -84,7 +84,7 @@ export default function RoleDetailPage() {
   const locked = role?.code === "SUPER_ADMIN";
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
+    <main className="flex w-full flex-col gap-4">
       <h1 className="text-3xl font-semibold">
         {role ? `${role.code} — ${role.name}` : "Role"}
       </h1>

@@ -1,8 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import {
+  AdminInput,
+  AdminPageHeader,
+  AdminTable,
+  RowLink,
+  StatusPill,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -38,46 +43,52 @@ export default function AdminUsersPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Users</h1>
-      <AdminNav />
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void load();
-        }}
-      >
-        <input
-          className="flex-1 rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Search email"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <button type="submit" className="rounded bg-emerald-700 px-3 py-2">
-          Search
-        </button>
-      </form>
-      <p className="text-sm text-slate-400">{total} users</p>
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
-        {items.map((u) => (
-          <li key={u.id}>
-            <Link
-              className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/users/${u.id}`}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Users"
+        subtitle={`${total} investors`}
+        actions={
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void load();
+            }}
+          >
+            <AdminInput
+              placeholder="Search email"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--sp-navy)] px-4 py-2 text-sm font-semibold text-white"
             >
-              <span className="font-medium">{u.email}</span>
-              <span className="text-sm text-slate-400">
-                {u.status}
-                {u.firstName || u.lastName
-                  ? ` · ${u.firstName ?? ""} ${u.lastName ?? ""}`.trim()
-                  : ""}
-              </span>
-            </Link>
-          </li>
+              Search
+            </button>
+          </form>
+        }
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={["Name", "Email", "Status", ""]}
+        empty={items.length === 0 ? "No users found." : undefined}
+      >
+        {items.map((u) => (
+          <tr key={u.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">{u.email}</td>
+            <td className="px-4 py-3">
+              <StatusPill status={u.status} />
+            </td>
+            <td className="px-4 py-3 text-right">
+              <RowLink href={`/admin/users/${u.id}`}>Open</RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

@@ -1,10 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { hasAnyPermission } from "@/permissions/visibility";
-import { AdminNav } from "../_components/admin-nav";
 import { useAdminPermissions } from "../_components/admin-shell";
+import {
+  AdminInput,
+  AdminPageHeader,
+  AdminPrimaryButton,
+  AdminTable,
+  RowLink,
+  StatusPill,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -42,50 +48,62 @@ export default function AdminStaffPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold">Staff</h1>
-        {canCreate ? (
-          <Link className="text-sm text-emerald-400" href="/admin/staff/new">
-            New
-          </Link>
-        ) : null}
-      </div>
-      <AdminNav />
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void load();
-        }}
-      >
-        <input
-          className="flex-1 rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Search email"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <button type="submit" className="rounded bg-emerald-700 px-3 py-2">
-          Search
-        </button>
-      </form>
-      <p className="text-sm text-slate-400">{total} staff</p>
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
-        {items.map((s) => (
-          <li key={s.id}>
-            <Link
-              className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/staff/${s.id}`}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Staff"
+        subtitle={`${total} accounts`}
+        actions={
+          <>
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void load();
+              }}
             >
-              <span className="font-medium">{s.email}</span>
-              <span className="text-sm text-slate-400">
-                {s.name} · {s.status} · {s.roles.join(", ") || "no roles"}
-              </span>
-            </Link>
-          </li>
+              <AdminInput
+                placeholder="Search staff"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="rounded-xl bg-[var(--sp-navy)] px-4 py-2 text-sm font-semibold text-white"
+              >
+                Search
+              </button>
+            </form>
+            {canCreate ? (
+              <AdminPrimaryButton href="/admin/staff/new">
+                + New staff
+              </AdminPrimaryButton>
+            ) : null}
+          </>
+        }
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={["Name", "Email", "Roles", "Status", ""]}
+        empty={items.length === 0 ? "No staff." : undefined}
+      >
+        {items.map((item) => (
+          <tr key={item.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {item.name}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">{item.email}</td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.roles.join(", ") || "—"}
+            </td>
+            <td className="px-4 py-3">
+              <StatusPill status={item.status} />
+            </td>
+            <td className="px-4 py-3 text-right">
+              <RowLink href={`/admin/staff/${item.id}`}>Open</RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

@@ -67,7 +67,7 @@ export default function AdminNewPackagePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 px-6 py-10">
+    <main className="flex w-full flex-col gap-4">
       <Link className="text-sm text-emerald-400" href="/admin/packages">
         ← Packages
       </Link>

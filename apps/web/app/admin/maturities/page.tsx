@@ -1,8 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import { formatAmount } from "@/lib/money";
+import {
+  AdminPageHeader,
+  AdminTable,
+  RowLink,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -34,32 +38,48 @@ export default function AdminMaturitiesPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Maturities</h1>
-      <AdminNav />
-      <p className="text-sm text-slate-400">
-        Due ACTIVE investments awaiting manual maturity processing.
-      </p>
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
-        {items.length === 0 && !error ? (
-          <li className="px-4 py-3 text-slate-400">No due maturities.</li>
-        ) : null}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Maturities"
+        subtitle="Due ACTIVE investments awaiting manual maturity processing"
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={[
+          "Investor",
+          "Package",
+          "Principal",
+          "Maturity value",
+          "Prior accrued",
+          "Due",
+          "",
+        ]}
+        empty={items.length === 0 ? "No due maturities." : undefined}
+      >
         {items.map((item) => (
-          <li key={item.id}>
-            <Link
-              className="flex flex-col gap-1 px-4 py-3 hover:bg-slate-900"
-              href={`/admin/maturities/${item.id}`}
-            >
-              <span className="font-medium">{item.userEmail}</span>
-              <span className="text-sm text-slate-400">
-                {item.packageName} · maturity value {item.maturityValue} · prior
-                accrued {item.priorAccrued} · due {item.maturityAt}
-              </span>
-            </Link>
-          </li>
+          <tr key={item.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {item.userEmail}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.packageName}
+            </td>
+            <td className="px-4 py-3">{formatAmount(item.principal)}</td>
+            <td className="px-4 py-3 font-semibold text-[var(--sp-navy)]">
+              {formatAmount(item.maturityValue)}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {formatAmount(item.priorAccrued)}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {new Date(item.maturityAt).toLocaleString()}
+            </td>
+            <td className="px-4 py-3 text-right">
+              <RowLink href={`/admin/maturities/${item.id}`}>Open</RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

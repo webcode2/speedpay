@@ -54,7 +54,7 @@ export default function NewStaffPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
+    <main className="flex w-full flex-col gap-4">
       <h1 className="text-3xl font-semibold">New staff</h1>
       <AdminNav />
       <form onSubmit={onSubmit} className="flex flex-col gap-3">

@@ -1,8 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import { formatAmount } from "@/lib/money";
+import {
+  AdminPageHeader,
+  AdminTable,
+  RowLink,
+} from "../_components/ui";
 
 type Item = {
   id: string;
@@ -33,37 +37,48 @@ export default function AdminReinvestmentsPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Reinvestments</h1>
-      <AdminNav />
-      <p className="text-sm text-slate-400">{total} reinvestments</p>
-      {error ? <p className="text-red-400">{error}</p> : null}
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
-        {items.length === 0 && !error ? (
-          <li className="px-4 py-3 text-slate-400">No reinvestments yet.</li>
-        ) : null}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Reinvestments"
+        subtitle={`${total} reinvestments`}
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      <AdminTable
+        columns={[
+          "Investor",
+          "Amount",
+          "New package",
+          "When",
+          "Parent",
+          "New",
+        ]}
+        empty={items.length === 0 ? "No reinvestments yet." : undefined}
+      >
         {items.map((item) => (
-          <li key={item.id} className="px-4 py-3">
-            <div className="font-medium">{item.userEmail}</div>
-            <div className="text-sm text-slate-400">
-              {item.amount} → {item.newPackageName} ·{" "}
-              <Link
-                className="text-emerald-400"
-                href={`/admin/investments/${item.newInvestmentId}`}
-              >
-                new
-              </Link>{" "}
-              from{" "}
-              <Link
-                className="text-emerald-400"
-                href={`/admin/investments/${item.parentInvestmentId}`}
-              >
-                parent
-              </Link>
-            </div>
-          </li>
+          <tr key={item.id} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+              {item.userEmail}
+            </td>
+            <td className="px-4 py-3">{formatAmount(item.amount)}</td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {item.newPackageName}
+            </td>
+            <td className="px-4 py-3 text-[var(--sp-muted)]">
+              {new Date(item.createdAt).toLocaleString()}
+            </td>
+            <td className="px-4 py-3">
+              <RowLink href={`/admin/investments/${item.parentInvestmentId}`}>
+                Parent
+              </RowLink>
+            </td>
+            <td className="px-4 py-3">
+              <RowLink href={`/admin/investments/${item.newInvestmentId}`}>
+                Open
+              </RowLink>
+            </td>
+          </tr>
         ))}
-      </ul>
-    </main>
+      </AdminTable>
+    </div>
   );
 }

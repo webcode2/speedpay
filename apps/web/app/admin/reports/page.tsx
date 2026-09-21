@@ -1,7 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { AdminNav } from "../_components/admin-nav";
+import {
+  AdminCard,
+  AdminInput,
+  AdminPageHeader,
+  AdminTable,
+  StatusPill,
+} from "../_components/ui";
 
 type Summary = {
   range: { from: string | null; to: string | null };
@@ -82,48 +88,55 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-3xl font-semibold">Reports</h1>
-      <AdminNav />
-      <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
-        <label className="text-sm text-slate-400">
-          From
-          <input
-            type="date"
-            className="mt-1 block rounded border border-slate-600 bg-slate-900 px-3 py-2"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-        </label>
-        <label className="text-sm text-slate-400">
-          To
-          <input
-            type="date"
-            className="mt-1 block rounded border border-slate-600 bg-slate-900 px-3 py-2"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-emerald-700 px-3 py-2"
-        >
-          {loading ? "Loading…" : "Apply"}
-        </button>
-      </form>
-      {error ? <p className="text-red-400">{error}</p> : null}
+    <div className="w-full">
+      <AdminPageHeader
+        title="Reports"
+        subtitle="Operational summary and CSV exports"
+        actions={
+          <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
+            <label className="text-xs font-medium text-[var(--sp-muted)]">
+              From
+              <AdminInput
+                type="date"
+                className="mt-1"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+            </label>
+            <label className="text-xs font-medium text-[var(--sp-muted)]">
+              To
+              <AdminInput
+                type="date"
+                className="mt-1"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-xl bg-[var(--sp-navy)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {loading ? "Loading…" : "Apply"}
+            </button>
+          </form>
+        }
+      />
+      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
 
       {summary ? (
-        <>
-          <section className="grid gap-3 sm:grid-cols-3">
+        <div className="space-y-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="New users" value={summary.users.newUsers} />
             <Stat label="Verified (KYC)" value={summary.users.verifiedUsers} />
             <Stat
               label="Active investors"
               value={summary.users.activeInvestors}
             />
-            <Stat label="Investment volume" value={summary.investments.volume} />
+            <Stat
+              label="Investment volume"
+              value={summary.investments.volume}
+            />
             <Stat
               label="Active investments"
               value={summary.investments.activeCount}
@@ -136,78 +149,98 @@ export default function AdminReportsPage() {
               label="Returns materialized"
               value={summary.financial.returnsMaterialized}
             />
-          </section>
+          </div>
 
-          <section className="space-y-2">
-            <h2 className="text-lg font-medium">Package performance</h2>
-            <ul className="divide-y divide-slate-800 rounded border border-slate-800">
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-[var(--sp-navy)]">
+              Package performance
+            </h2>
+            <AdminTable
+              columns={["Package", "Sold lots", "Principal"]}
+              empty={
+                summary.investments.packagePerformance.length === 0
+                  ? "No packages"
+                  : undefined
+              }
+            >
               {summary.investments.packagePerformance.map((p) => (
-                <li key={p.packageId} className="px-4 py-2 text-sm">
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-slate-400">
-                    {" "}
-                    · sold {p.soldLots} · principal {p.principal}
-                  </span>
-                </li>
+                <tr key={p.packageId} className="hover:bg-[var(--sp-surface)]/70">
+                  <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+                    {p.name}
+                  </td>
+                  <td className="px-4 py-3">{p.soldLots}</td>
+                  <td className="px-4 py-3">{p.principal}</td>
+                </tr>
               ))}
-              {summary.investments.packagePerformance.length === 0 ? (
-                <li className="px-4 py-3 text-sm text-slate-500">No packages</li>
-              ) : null}
-            </ul>
-          </section>
+            </AdminTable>
+          </div>
 
-          <section className="grid gap-4 sm:grid-cols-2">
-            <StatusTable title="Deposits" rows={summary.financial.deposits} />
-            <StatusTable
+          <div className="grid gap-4 lg:grid-cols-2">
+            <StatusBlock title="Deposits" rows={summary.financial.deposits} />
+            <StatusBlock
               title="Withdrawals"
               rows={summary.financial.withdrawals}
             />
-          </section>
+          </div>
 
-          <section className="space-y-2">
-            <h2 className="text-lg font-medium">Wallet activity</h2>
-            <ul className="divide-y divide-slate-800 rounded border border-slate-800">
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-[var(--sp-navy)]">
+              Wallet activity
+            </h2>
+            <AdminTable
+              columns={["Direction", "Amount", "Txns"]}
+              empty={
+                summary.financial.wallet.length === 0
+                  ? "No activity"
+                  : undefined
+              }
+            >
               {summary.financial.wallet.map((w) => (
-                <li key={w.direction} className="px-4 py-2 text-sm">
-                  {w.direction}: {w.amount} ({w.count} txns)
-                </li>
+                <tr key={w.direction} className="hover:bg-[var(--sp-surface)]/70">
+                  <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
+                    {w.direction}
+                  </td>
+                  <td className="px-4 py-3">{w.amount}</td>
+                  <td className="px-4 py-3 text-[var(--sp-muted)]">{w.count}</td>
+                </tr>
               ))}
-              {summary.financial.wallet.length === 0 ? (
-                <li className="px-4 py-3 text-sm text-slate-500">No activity</li>
-              ) : null}
-            </ul>
-          </section>
+            </AdminTable>
+          </div>
 
-          <section className="space-y-2">
-            <h2 className="text-lg font-medium">CSV export</h2>
+          <div>
+            <h2 className="mb-3 text-lg font-semibold text-[var(--sp-navy)]">
+              CSV export
+            </h2>
             <div className="flex flex-wrap gap-2">
               {EXPORT_KINDS.map((kind) => (
                 <a
                   key={kind}
-                  className="rounded border border-slate-600 px-3 py-2 text-sm text-emerald-400"
+                  className="rounded-xl border border-[var(--sp-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--sp-navy)] hover:bg-[var(--sp-lime-mint)]"
                   href={`/api/admin/reports/${kind}/export${qs()}`}
                 >
                   {kind}.csv
                 </a>
               ))}
             </div>
-          </section>
-        </>
+          </div>
+        </div>
       ) : null}
-    </main>
+    </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded border border-slate-800 px-4 py-3">
-      <p className="text-sm text-slate-400">{label}</p>
-      <p className="text-2xl font-semibold">{value}</p>
-    </div>
+    <AdminCard className="!p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--sp-muted)]">
+        {label}
+      </p>
+      <p className="mt-1 text-2xl font-bold text-[var(--sp-navy)]">{value}</p>
+    </AdminCard>
   );
 }
 
-function StatusTable({
+function StatusBlock({
   title,
   rows,
 }: {
@@ -215,18 +248,24 @@ function StatusTable({
   rows: { status: string; count: number; amount: number }[];
 }) {
   return (
-    <div className="space-y-2">
-      <h2 className="text-lg font-medium">{title}</h2>
-      <ul className="divide-y divide-slate-800 rounded border border-slate-800">
+    <div>
+      <h2 className="mb-3 text-lg font-semibold text-[var(--sp-navy)]">
+        {title}
+      </h2>
+      <AdminTable
+        columns={["Status", "Count", "Amount"]}
+        empty={rows.length === 0 ? "None in range" : undefined}
+      >
         {rows.map((r) => (
-          <li key={r.status} className="px-4 py-2 text-sm">
-            {r.status}: {r.count} · {r.amount}
-          </li>
+          <tr key={r.status} className="hover:bg-[var(--sp-surface)]/70">
+            <td className="px-4 py-3">
+              <StatusPill status={r.status} />
+            </td>
+            <td className="px-4 py-3">{r.count}</td>
+            <td className="px-4 py-3">{r.amount}</td>
+          </tr>
         ))}
-        {rows.length === 0 ? (
-          <li className="px-4 py-3 text-sm text-slate-500">None in range</li>
-        ) : null}
-      </ul>
+      </AdminTable>
     </div>
   );
 }
