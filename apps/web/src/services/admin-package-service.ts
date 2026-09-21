@@ -14,6 +14,7 @@ export type PackageInput = {
   projectId: string;
   name: string;
   description?: string | null;
+  bannerImage: string;
   lotPrice: string;
   totalLots: number;
   minimumLots?: number;
@@ -55,7 +56,7 @@ async function requireAnyPackageRead(adminId: string) {
   if (!can) throw new AppError("FORBIDDEN", "Missing required permission.", 403);
 }
 
-function validateTerms(input: PackageInput) {
+export function validatePackageInput(input: PackageInput) {
   if (!input.name.trim()) {
     throw new AppError("VALIDATION_ERROR", "Name is required.", 400);
   }
@@ -71,6 +72,13 @@ function validateTerms(input: PackageInput) {
   if ((input.minimumLots ?? 1) < 1) {
     throw new AppError("VALIDATION_ERROR", "minimumLots must be >= 1.", 400);
   }
+  if (!input.bannerImage?.trim()) {
+    throw new AppError("VALIDATION_ERROR", "Banner image is required.", 400);
+  }
+}
+
+function validateTerms(input: PackageInput) {
+  validatePackageInput(input);
 }
 
 function toView(
@@ -178,6 +186,7 @@ export async function createPackage(adminId: string, input: PackageInput, meta: 
       projectId: input.projectId,
       name: input.name.trim(),
       description: input.description ?? null,
+      bannerImage: input.bannerImage.trim(),
       lotPrice: input.lotPrice.trim(),
       totalLots: input.totalLots,
       minimumLots: input.minimumLots ?? 1,
@@ -246,6 +255,7 @@ export async function updatePackage(
       projectId: input.projectId,
       name: input.name.trim(),
       description: input.description ?? null,
+      bannerImage: input.bannerImage.trim(),
       lotPrice: input.lotPrice.trim(),
       totalLots: input.totalLots,
       minimumLots: input.minimumLots ?? 1,

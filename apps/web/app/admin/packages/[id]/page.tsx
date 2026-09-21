@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import {
+  AdminCard,
+  AdminInput,
+  AdminPageHeader,
+  AdminSelect,
+  StatusPill,
+} from "../../_components/ui";
 
 type Version = {
   id: string;
@@ -18,6 +25,7 @@ type Pkg = {
   projectId: string;
   name: string;
   description: string | null;
+  bannerImage: string | null;
   status: string;
   lotPrice: string;
   totalLots: number;
@@ -38,9 +46,12 @@ export default function AdminPackageDetailPage() {
   const [pkg, setPkg] = useState<Pkg | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
+    bannerImage: "",
     lotPrice: "",
     totalLots: "",
     minimumLots: "",
@@ -62,6 +73,7 @@ export default function AdminPackageDetailPage() {
     setForm({
       name: p.name,
       description: p.description ?? "",
+      bannerImage: p.bannerImage ?? "",
       lotPrice: p.lotPrice,
       totalLots: String(p.totalLots),
       minimumLots: String(p.minimumLots),
@@ -78,9 +90,36 @@ export default function AdminPackageDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
+  async function onBanner(file: File | null) {
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    setPreview(URL.createObjectURL(file));
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/admin/media/image", {
+        method: "POST",
+        body,
+      });
+      const json = await res.json();
+      if (!json.success) {
+        setError(json.error?.message ?? "Upload failed");
+        return;
+      }
+      setForm((f) => ({ ...f, bannerImage: json.data.storageKey }));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!pkg) return;
+    if (!form.bannerImage) {
+      setError("Banner image is required.");
+      return;
+    }
     const res = await fetch(`/api/admin/packages/${params.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +127,7 @@ export default function AdminPackageDetailPage() {
         projectId: pkg.projectId,
         name: form.name,
         description: form.description || null,
+        bannerImage: form.bannerImage,
         lotPrice: form.lotPrice,
         totalLots: Number(form.totalLots),
         minimumLots: Number(form.minimumLots),
@@ -122,67 +162,113 @@ export default function AdminPackageDetailPage() {
   }
 
   if (!pkg) {
-    return (
-      <main className="flex w-full items-center">
-        <p className="text-slate-400">{error ?? "Loading…"}</p>
-      </main>
-    );
+    return <p className="text-[var(--sp-muted)]">{error ?? "Loading…"}</p>;
   }
 
   return (
-    <main className="flex w-full flex-col gap-4">
-      <Link className="text-sm text-emerald-400" href="/admin/packages">
+    <div className="w-full space-y-4">
+      <Link
+        href="/admin/packages"
+        className="text-sm font-medium text-[var(--sp-lime-deep)]"
+      >
         ← Packages
       </Link>
-      <h1 className="text-3xl font-semibold">{pkg.name}</h1>
-      <p className="text-slate-400">
-        {pkg.projectName} · {pkg.status} · available {pkg.availableLots} / total{" "}
-        {pkg.totalLots} (reserved {pkg.reservedLots}, sold {pkg.soldLots})
-      </p>
+      <AdminPageHeader
+        title={pkg.name}
+        subtitle={`${pkg.projectName ?? ""} · available ${pkg.availableLots} / ${pkg.totalLots}`}
+        actions={<StatusPill status={pkg.status} />}
+      />
 
-      <form onSubmit={save} className="flex flex-col gap-3">
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-        <textarea
-          className="min-h-20 rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-        {(
-          [
-            ["lotPrice", "Lot price"],
-            ["totalLots", "Total lots"],
-            ["minimumLots", "Min lots"],
-            ["maximumLots", "Max lots"],
-            ["returnRate", "Return rate"],
-            ["durationDays", "Duration days"],
-          ] as const
-        ).map(([key, label]) => (
-          <input
-            key={key}
-            className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-            placeholder={label}
-            value={form[key]}
-            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-          />
-        ))}
-        <select
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          value={form.returnType}
-          onChange={(e) => setForm({ ...form, returnType: e.target.value })}
-        >
-          <option value="FIXED_RETURN">FIXED_RETURN</option>
-          <option value="FIXED_PROFIT">FIXED_PROFIT</option>
-        </select>
-        <button
-          type="submit"
-          className="w-fit rounded bg-slate-100 px-4 py-2 text-slate-950"
-        >
-          Save
-        </button>
+      <form onSubmit={save} className="grid gap-4 lg:grid-cols-2">
+        <AdminCard className="space-y-3">
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Name</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Description</span>
+            <textarea
+              className="mt-1 min-h-24 w-full rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] outline-none ring-[var(--sp-lime)] focus:ring-2"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Banner</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="mt-1 block w-full text-sm text-[var(--sp-muted)]"
+              onChange={(e) => void onBanner(e.target.files?.[0] ?? null)}
+            />
+            {uploading ? (
+              <p className="mt-1 text-xs text-[var(--sp-muted)]">Uploading…</p>
+            ) : null}
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview}
+                alt="Banner preview"
+                className="mt-3 h-40 w-full rounded-2xl object-cover"
+              />
+            ) : null}
+            {form.bannerImage ? (
+              <p className="mt-1 truncate font-mono text-xs text-[var(--sp-muted)]">
+                {form.bannerImage}
+              </p>
+            ) : null}
+          </label>
+        </AdminCard>
+        <AdminCard className="space-y-3">
+          {(
+            [
+              ["lotPrice", "Lot price"],
+              ["totalLots", "Total lots"],
+              ["minimumLots", "Min lots"],
+              ["maximumLots", "Max lots"],
+              ["returnRate", "Return rate"],
+              ["durationDays", "Duration days"],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key} className="block text-sm">
+              <span className="font-medium text-[var(--sp-navy)]">{label}</span>
+              <AdminInput
+                className="mt-1 w-full"
+                value={form[key]}
+                onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+              />
+            </label>
+          ))}
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Return type</span>
+            <div className="mt-1">
+              <AdminSelect
+                value={form.returnType}
+                onChange={(v) => setForm({ ...form, returnType: v })}
+              >
+                <option value="FIXED_RETURN">FIXED_RETURN</option>
+                <option value="FIXED_PROFIT">FIXED_PROFIT</option>
+              </AdminSelect>
+            </div>
+          </label>
+          {error ? <p className="text-[var(--sp-danger)]">{error}</p> : null}
+          {message ? (
+            <p className="text-[var(--sp-lime-deep)]">{message}</p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={uploading}
+            className="rounded-xl bg-[var(--sp-navy)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            Save
+          </button>
+        </AdminCard>
       </form>
 
       <div className="flex flex-wrap gap-2">
@@ -190,7 +276,7 @@ export default function AdminPackageDetailPage() {
           <button
             key={action}
             type="button"
-            className="rounded bg-emerald-500/90 px-3 py-2 text-sm text-slate-950"
+            className="rounded-xl bg-[var(--sp-lime)] px-3 py-2 text-sm font-semibold text-white"
             onClick={() => void act(action)}
           >
             {action}
@@ -198,23 +284,18 @@ export default function AdminPackageDetailPage() {
         ))}
       </div>
 
-      <section>
-        <h2 className="mb-2 text-lg font-medium">Versions</h2>
-        <ul className="space-y-1 text-sm text-slate-300">
+      <AdminCard>
+        <h2 className="mb-2 font-semibold text-[var(--sp-navy)]">Versions</h2>
+        <ul className="space-y-1 text-sm text-[var(--sp-muted)]">
           {(pkg.versions ?? []).map((v) => (
             <li key={v.id}>
-              v{v.version}: {v.lotPrice} · {v.returnType} {v.returnRate}% ·{" "}
+              v{v.version}: {v.lotPrice} · {v.returnType} {v.returnRate} ·{" "}
               {v.durationDays}d
             </li>
           ))}
-          {(pkg.versions ?? []).length === 0 ? (
-            <li className="text-slate-500">No snapshots yet (activate to create)</li>
-          ) : null}
+          {(pkg.versions ?? []).length === 0 ? <li>No versions yet</li> : null}
         </ul>
-      </section>
-
-      {error ? <p className="text-red-400">{error}</p> : null}
-      {message ? <p className="text-emerald-400">{message}</p> : null}
-    </main>
+      </AdminCard>
+    </div>
   );
 }

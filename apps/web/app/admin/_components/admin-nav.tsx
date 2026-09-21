@@ -40,6 +40,12 @@ export const ADMIN_NAV_LINKS = [
   },
   { href: "/admin/deposits", label: "Deposits", group: "ops", permissions: ["deposits.read"] },
   {
+    href: "/admin/payment-accounts",
+    label: "Payment accounts",
+    group: "ops",
+    permissions: ["payment_accounts.read"],
+  },
+  {
     href: "/admin/withdrawals",
     label: "Withdrawals",
     group: "ops",

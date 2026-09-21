@@ -4,27 +4,21 @@ import { getAdminBearerOrCookieToken, requestMeta } from "@/auth/request";
 import { AppError } from "@/lib/app-error";
 import { getCurrentAdmin } from "@/services/admin-auth-service";
 import {
-  getPackage,
-  updatePackage,
-} from "@/services/admin-package-service";
+  deletePaymentAccount,
+  getPaymentAccount,
+  updatePaymentAccount,
+} from "@/services/platform-payment-account-service";
 
 type Params = { params: Promise<{ id: string }> };
 
 const bodySchema = z.object({
-  projectId: z.string().uuid(),
-  name: z.string().trim().min(1).max(200),
-  description: z.string().trim().nullable().optional(),
-  lotPrice: z.string().trim().min(1),
-  totalLots: z.number().int().positive(),
-  minimumLots: z.number().int().positive().optional(),
-  maximumLots: z.number().int().positive().nullable().optional(),
-  returnType: z.enum(["FIXED_RETURN", "FIXED_PROFIT"]),
-  returnRate: z.string().trim().min(1),
-  durationDays: z.number().int().positive(),
-  availableFrom: z.string().nullable().optional(),
-  availableUntil: z.string().nullable().optional(),
-  terms: z.string().nullable().optional(),
-  bannerImage: z.string().trim().min(1),
+  type: z.enum(["BANK", "MOBILE_MONEY", "OTHER"]),
+  label: z.string().trim().min(1).max(200),
+  accountName: z.string().trim().min(1).max(200),
+  accountNumber: z.string().trim().min(1).max(100),
+  bankName: z.string().trim().nullable().optional(),
+  provider: z.string().trim().nullable().optional(),
+  notes: z.string().trim().nullable().optional(),
 });
 
 async function requireAdmin(request: Request) {
@@ -37,7 +31,7 @@ export async function GET(request: Request, { params }: Params) {
   try {
     const { id } = await params;
     const admin = await requireAdmin(request);
-    return apiSuccess({ package: await getPackage(admin.id, id) });
+    return apiSuccess({ account: await getPaymentAccount(admin.id, id) });
   } catch (error) {
     return handleRouteError(error);
   }
@@ -48,7 +42,25 @@ export async function PATCH(request: Request, { params }: Params) {
     const { id } = await params;
     const admin = await requireAdmin(request);
     const body = bodySchema.parse(await request.json());
-    return apiSuccess({ package: await updatePackage(admin.id, id, body, requestMeta(request)) });
+    return apiSuccess({
+      account: await updatePaymentAccount(
+        admin.id,
+        id,
+        body,
+        requestMeta(request),
+      ),
+    });
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(request: Request, { params }: Params) {
+  try {
+    const { id } = await params;
+    const admin = await requireAdmin(request);
+    await deletePaymentAccount(admin.id, id, requestMeta(request));
+    return apiSuccess({ ok: true });
   } catch (error) {
     return handleRouteError(error);
   }

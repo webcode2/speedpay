@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   availableLots,
   deriveInventoryStatus,
+  validatePackageInput,
 } from "./admin-package-service";
 
 describe("package inventory helpers", () => {
@@ -17,5 +18,28 @@ describe("package inventory helpers", () => {
 
   it("reopens FULL when inventory returns", () => {
     expect(deriveInventoryStatus("FULL", 10)).toBe("OPEN");
+  });
+});
+
+describe("validatePackageInput", () => {
+  const base = {
+    projectId: "x",
+    name: "n",
+    lotPrice: "100",
+    totalLots: 1,
+    returnType: "FIXED_RETURN",
+    returnRate: "0.1",
+    durationDays: 30,
+    bannerImage: "packages/banners/a.jpg",
+  };
+
+  it("requires bannerImage", () => {
+    expect(() => validatePackageInput({ ...base, bannerImage: "" })).toThrow(
+      /Banner/,
+    );
+  });
+
+  it("accepts valid input", () => {
+    expect(() => validatePackageInput(base)).not.toThrow();
   });
 });

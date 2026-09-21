@@ -6,6 +6,11 @@ import { getPaymentProvider } from "@/payments";
 import { validateDepositAmount } from "@/lib/integrity";
 import { safeNotify } from "@/services/notification-service";
 import { postLedgerEntry } from "@/services/wallet-service";
+import {
+  formatPaymentInstructions,
+  listPublishedPaymentAccounts,
+  pickRandomPublishedAccount,
+} from "@/services/platform-payment-account-service";
 import { getSetting, getSettingNumber } from "@/settings/settings";
 
 export async function createDeposit(userId: string, amount: number) {
@@ -15,6 +20,16 @@ export async function createDeposit(userId: string, amount: number) {
     throw new AppError(
       "VALIDATION_ERROR",
       `amount must be an integer >= ${minDeposit} (minor units).`,
+      400,
+    );
+  }
+
+  const published = await listPublishedPaymentAccounts();
+  const selected = pickRandomPublishedAccount(published);
+  if (!selected) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "No published payment accounts available. Contact support.",
       400,
     );
   }
@@ -55,7 +70,16 @@ export async function createDeposit(userId: string, amount: number) {
     payment: {
       providerRef: init.providerRef,
       paymentUrl: init.paymentUrl,
-      instructions: init.instructions,
+      instructions: formatPaymentInstructions(selected),
+      account: {
+        id: selected.id,
+        type: selected.type,
+        accountName: selected.accountName,
+        accountNumber: selected.accountNumber,
+        bankName: selected.bankName,
+        provider: selected.provider,
+        notes: selected.notes,
+      },
     },
   };
 }

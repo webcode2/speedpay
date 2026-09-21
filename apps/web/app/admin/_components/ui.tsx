@@ -57,6 +57,7 @@ export function StatusPill({ status }: { status: string }) {
       "PROCESSED",
       "KYC_APPROVED",
       "ELIGIBLE",
+      "PUBLISHED",
     ].includes(s)
   ) {
     cls = "bg-[var(--sp-lime-mint)] text-[var(--sp-lime-deep)]";
