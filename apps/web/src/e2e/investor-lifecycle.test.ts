@@ -164,7 +164,10 @@ describeE2E("E2E investor lifecycle", () => {
 
       await getDb()
         .update(investments)
-        .set({ maturityAt: new Date(Date.now() - 60_000) })
+        .set({
+          startAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+          maturityAt: new Date(Date.now() - 60_000),
+        })
         .where(eq(investments.id, investmentId));
 
       const maturity = await processMaturity({
