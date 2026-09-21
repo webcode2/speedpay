@@ -204,7 +204,7 @@ describeE2E("E2E investor lifecycle", () => {
       const withdrawals = await listWithdrawals(userId);
       expect(
         withdrawals.some(
-          (w) => w.id === withdrawal.withdrawal.id && w.status === "PROCESSED",
+          (w) => w.id === withdrawal.withdrawal.id && w.status === "COMPLETED",
         ),
       ).toBe(true);
     },
