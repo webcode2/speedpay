@@ -65,7 +65,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         title: Text(item['name'] as String? ?? ''),
                         subtitle: Text(
                           '${item['projectName']} · ${item['lotPrice']}/lot · '
-                          '${item['availableLots']} available · '
+                          '${item['availableLots'] ?? 0}/${item['totalLots'] ?? '—'} slots'
+                          '${(item['availableLots'] ?? 0) == 0 ? ' · Sold out' : ''} · '
                           '${item['returnRate']}% · ${item['durationDays']}d',
                         ),
                         isThreeLine: true,

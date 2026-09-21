@@ -17,6 +17,8 @@ export type PackageInput = {
   bannerImage: string;
   lotPrice: string;
   totalLots: number;
+  /** Remaining slots for investors. Server derives reservedLots. */
+  availableLots?: number;
   minimumLots?: number;
   maximumLots?: number | null;
   returnType: string;
@@ -234,19 +236,48 @@ export async function updatePackage(
 
   const db = getDb();
   const now = new Date();
-  const available = availableLots({
-    totalLots: input.totalLots,
-    reservedLots: detail.reservedLots,
-    soldLots: detail.soldLots,
-  });
-  if (input.totalLots < detail.reservedLots + detail.soldLots) {
+
+  const maxAvailable = input.totalLots - detail.soldLots;
+  if (maxAvailable < 0) {
     throw new AppError(
       "INVALID_STATE",
-      "totalLots cannot be below reserved+sold.",
+      "totalLots cannot be below sold lots.",
       400,
     );
   }
-  let nextStatus = deriveInventoryStatus(detail.status, available);
+
+  let nextReserved = detail.reservedLots;
+  let nextAvailable: number;
+  if (input.availableLots !== undefined) {
+    if (
+      !Number.isInteger(input.availableLots) ||
+      input.availableLots < 0 ||
+      input.availableLots > maxAvailable
+    ) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        `availableLots must be an integer between 0 and ${maxAvailable}.`,
+        400,
+      );
+    }
+    nextAvailable = input.availableLots;
+    nextReserved = input.totalLots - detail.soldLots - nextAvailable;
+  } else {
+    if (input.totalLots < detail.reservedLots + detail.soldLots) {
+      throw new AppError(
+        "INVALID_STATE",
+        "totalLots cannot be below reserved+sold.",
+        400,
+      );
+    }
+    nextAvailable = availableLots({
+      totalLots: input.totalLots,
+      reservedLots: detail.reservedLots,
+      soldLots: detail.soldLots,
+    });
+  }
+
+  let nextStatus = deriveInventoryStatus(detail.status, nextAvailable);
   if (detail.status === "DRAFT") nextStatus = "DRAFT";
 
   const [updated] = await db
@@ -258,6 +289,7 @@ export async function updatePackage(
       bannerImage: input.bannerImage.trim(),
       lotPrice: input.lotPrice.trim(),
       totalLots: input.totalLots,
+      reservedLots: nextReserved,
       minimumLots: input.minimumLots ?? 1,
       maximumLots: input.maximumLots ?? null,
       returnType: input.returnType,

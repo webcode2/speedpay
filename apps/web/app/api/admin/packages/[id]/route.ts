@@ -25,6 +25,7 @@ const bodySchema = z.object({
   availableUntil: z.string().nullable().optional(),
   terms: z.string().nullable().optional(),
   bannerImage: z.string().trim().min(1),
+  availableLots: z.number().int().min(0).optional(),
 });
 
 async function requireAdmin(request: Request) {

@@ -61,10 +61,12 @@ export function StatusPill({ status }: { status: string }) {
     ].includes(s)
   ) {
     cls = "bg-[var(--sp-lime-mint)] text-[var(--sp-lime-deep)]";
-  } else if (["PENDING", "PROCESSING", "UNDER_REVIEW"].includes(s)) {
+  } else if (["PENDING", "PROCESSING", "UNDER_REVIEW", "PAUSED", "DRAFT"].includes(s)) {
     cls = "bg-amber-50 text-amber-700";
   } else if (
-    ["FAILED", "REJECTED", "CANCELLED", "SUSPENDED", "CLOSED"].includes(s)
+    ["FAILED", "REJECTED", "CANCELLED", "SUSPENDED", "CLOSED", "ARCHIVED", "FULL"].includes(
+      s,
+    )
   ) {
     cls = "bg-red-50 text-[var(--sp-danger)]";
   }

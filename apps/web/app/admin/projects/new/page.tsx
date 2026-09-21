@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import {
+  AdminCard,
+  AdminInput,
+  AdminPageHeader,
+} from "../../_components/ui";
 
 export default function AdminNewProjectPage() {
   const router = useRouter();
@@ -34,45 +39,60 @@ export default function AdminNewProjectPage() {
   }
 
   return (
-    <main className="flex w-full flex-col gap-4">
-      <Link className="text-sm text-emerald-400" href="/admin/projects">
+    <div className="w-full">
+      <Link
+        href="/admin/projects"
+        className="text-sm font-medium text-[var(--sp-lime-deep)]"
+      >
         ← Projects
       </Link>
-      <h1 className="text-3xl font-semibold">New project</h1>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <textarea
-          className="min-h-24 rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Capacity"
-          value={capacity}
-          onChange={(e) => setCapacity(e.target.value)}
-        />
-        {error ? <p className="text-red-400">{error}</p> : null}
-        <button
-          type="submit"
-          className="rounded bg-emerald-500 px-4 py-2 text-slate-950"
-        >
-          Create draft
-        </button>
+      <AdminPageHeader title="New project" subtitle="Create a solar / asset project" />
+      <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
+        <AdminCard className="space-y-3">
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Name</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Description</span>
+            <textarea
+              className="mt-1 min-h-28 w-full rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] outline-none ring-[var(--sp-lime)] focus:ring-2"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </label>
+        </AdminCard>
+        <AdminCard className="space-y-3">
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Location</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Capacity</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+            />
+          </label>
+          {error ? <p className="text-[var(--sp-danger)]">{error}</p> : null}
+          <button
+            type="submit"
+            className="rounded-xl bg-[var(--sp-navy)] px-4 py-2.5 text-sm font-semibold text-white"
+          >
+            Create draft
+          </button>
+        </AdminCard>
       </form>
-    </main>
+    </div>
   );
 }

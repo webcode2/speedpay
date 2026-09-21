@@ -26,7 +26,11 @@ export const PROJECT_TRANSITIONS: Record<
 > = {
   publish: { to: "ACTIVE", from: ["DRAFT"], permission: "projects.publish" },
   pause: { to: "PAUSED", from: ["ACTIVE"], permission: "projects.update" },
-  resume: { to: "ACTIVE", from: ["PAUSED"], permission: "projects.update" },
+  resume: {
+    to: "ACTIVE",
+    from: ["PAUSED", "ARCHIVED", "COMPLETED"],
+    permission: "projects.update",
+  },
   complete: {
     to: "COMPLETED",
     from: ["ACTIVE", "PAUSED"],

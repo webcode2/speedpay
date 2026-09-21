@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import {
   investmentPackages,
   packageVersions,
@@ -118,7 +118,7 @@ export async function listMarketplacePackages() {
     })
     .from(investmentPackages)
     .innerJoin(projects, eq(investmentPackages.projectId, projects.id))
-    .where(eq(investmentPackages.status, "OPEN"))
+    .where(inArray(investmentPackages.status, ["OPEN", "FULL"]))
     .orderBy(desc(investmentPackages.createdAt));
 
   const items = [];
@@ -142,7 +142,7 @@ export async function getMarketplacePackage(id: string) {
     .where(eq(investmentPackages.id, id))
     .limit(1);
   if (!row) throw new AppError("NOT_FOUND", "Package not found.", 404);
-  if (row.pkg.status !== "OPEN") {
+  if (!["OPEN", "FULL"].includes(row.pkg.status)) {
     throw new AppError("INVALID_STATE", "Package is not open for investment.", 400);
   }
   if (!isWithinWindow(row.pkg)) {

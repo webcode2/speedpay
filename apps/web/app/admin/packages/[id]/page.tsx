@@ -54,6 +54,7 @@ export default function AdminPackageDetailPage() {
     bannerImage: "",
     lotPrice: "",
     totalLots: "",
+    availableLots: "",
     minimumLots: "",
     maximumLots: "",
     returnType: "FIXED_RETURN",
@@ -76,6 +77,7 @@ export default function AdminPackageDetailPage() {
       bannerImage: p.bannerImage ?? "",
       lotPrice: p.lotPrice,
       totalLots: String(p.totalLots),
+      availableLots: String(p.availableLots),
       minimumLots: String(p.minimumLots),
       maximumLots: p.maximumLots != null ? String(p.maximumLots) : "",
       returnType: p.returnType,
@@ -130,6 +132,7 @@ export default function AdminPackageDetailPage() {
         bannerImage: form.bannerImage,
         lotPrice: form.lotPrice,
         totalLots: Number(form.totalLots),
+        availableLots: Number(form.availableLots),
         minimumLots: Number(form.minimumLots),
         maximumLots: form.maximumLots ? Number(form.maximumLots) : null,
         returnType: form.returnType,
@@ -226,10 +229,18 @@ export default function AdminPackageDetailPage() {
           </label>
         </AdminCard>
         <AdminCard className="space-y-3">
+          <div className="rounded-2xl bg-[var(--sp-surface)] px-4 py-3 text-sm text-[var(--sp-muted)]">
+            Sold (real purchases):{" "}
+            <span className="font-semibold text-[var(--sp-navy)]">
+              {pkg.soldLots}
+            </span>
+            . Investors only see remaining / total — never admin holds.
+          </div>
           {(
             [
               ["lotPrice", "Lot price"],
-              ["totalLots", "Total lots"],
+              ["totalLots", "Total slots"],
+              ["availableLots", "Available slots (remaining)"],
               ["minimumLots", "Min lots"],
               ["maximumLots", "Max lots"],
               ["returnRate", "Return rate"],

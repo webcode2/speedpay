@@ -128,19 +128,30 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
             const SizedBox(height: 12),
             Text('Project: ${pkg['projectName']}'),
             Text('Lot price: ${pkg['lotPrice']}'),
-            Text('Available: ${pkg['availableLots']}'),
+            Text(
+              (pkg['availableLots'] ?? 0) == 0
+                  ? 'Slots: Sold out (${pkg['totalLots'] ?? 0} total)'
+                  : 'Slots: ${pkg['availableLots']} remaining of ${pkg['totalLots'] ?? '—'}',
+            ),
             Text('Return: ${pkg['returnType']} ${pkg['returnRate']}%'),
             Text('Duration: ${pkg['durationDays']} days'),
             const SizedBox(height: 16),
-            TextField(
-              controller: _lots,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Lots'),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(onPressed: _quoteNow, child: const Text('Get summary')),
+            if ((pkg['availableLots'] as num?)?.toInt() == 0)
+              const Text(
+                'This package is sold out.',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              )
+            else ...[
+              TextField(
+                controller: _lots,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Lots'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton(onPressed: _quoteNow, child: const Text('Get summary')),
+            ],
           ],
-          if (_quote != null) ...[
+          if (_quote != null && (pkg?['availableLots'] as num?)?.toInt() != 0) ...[
             const SizedBox(height: 24),
             Text('Investment summary', style: Theme.of(context).textTheme.titleLarge),
             Text('Principal: ${_quote!['principal']}'),

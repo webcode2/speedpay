@@ -14,6 +14,11 @@ describe("project transitions", () => {
     expect(() => assertProjectTransition("publish", "ACTIVE")).toThrow(AppError);
   });
 
+  it("allows resume from ARCHIVED and COMPLETED back to ACTIVE", () => {
+    expect(assertProjectTransition("resume", "ARCHIVED").to).toBe("ACTIVE");
+    expect(assertProjectTransition("resume", "COMPLETED").to).toBe("ACTIVE");
+  });
+
   it("defines all lifecycle actions", () => {
     expect(Object.keys(PROJECT_TRANSITIONS).sort()).toEqual([
       "archive",

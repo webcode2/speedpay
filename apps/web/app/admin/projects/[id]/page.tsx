@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  AdminCard,
+  AdminInput,
+  AdminPageHeader,
+  StatusPill,
+} from "../../_components/ui";
 
 type Project = {
   id: string;
@@ -20,6 +26,14 @@ type Doc = {
   id: string;
   kind: string;
   fileName: string;
+};
+
+const ACTIONS_BY_STATUS: Record<string, string[]> = {
+  DRAFT: ["publish", "archive"],
+  ACTIVE: ["pause", "complete", "archive"],
+  PAUSED: ["resume", "complete", "archive"],
+  COMPLETED: ["resume", "archive"],
+  ARCHIVED: ["resume"],
 };
 
 export default function AdminProjectDetailPage() {
@@ -55,6 +69,13 @@ export default function AdminProjectDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
+  const actions = useMemo(
+    () => (project ? ACTIONS_BY_STATUS[project.status] ?? [] : []),
+    [project],
+  );
+
+  const archived = project?.status === "ARCHIVED";
+
   async function save(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -88,7 +109,12 @@ export default function AdminProjectDetailPage() {
       setError(json.error?.message ?? "Action failed");
       return;
     }
-    setMessage(`Marked ${action}`);
+    setMessage(
+      action === "resume" &&
+        (project?.status === "ARCHIVED" || project?.status === "COMPLETED")
+        ? "Reactivated — project is ACTIVE again"
+        : `Marked ${action}`,
+    );
     await load();
   }
 
@@ -111,96 +137,137 @@ export default function AdminProjectDetailPage() {
   }
 
   if (!project) {
-    return (
-      <main className="flex w-full items-center">
-        <p className="text-slate-400">{error ?? "Loading…"}</p>
-      </main>
-    );
+    return <p className="text-[var(--sp-muted)]">{error ?? "Loading…"}</p>;
   }
 
   return (
-    <main className="flex w-full flex-col gap-4">
-      <Link className="text-sm text-emerald-400" href="/admin/projects">
+    <div className="w-full space-y-4">
+      <Link
+        href="/admin/projects"
+        className="text-sm font-medium text-[var(--sp-lime-deep)]"
+      >
         ← Projects
       </Link>
-      <h1 className="text-3xl font-semibold">{project.name}</h1>
-      <p className="text-slate-400">Status: {project.status}</p>
+      <AdminPageHeader
+        title={project.name}
+        subtitle="Project details"
+        actions={<StatusPill status={project.status} />}
+      />
 
-      <form onSubmit={save} className="flex flex-col gap-3">
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <textarea
-          className="min-h-24 rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-        <input
-          className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Capacity"
-          value={capacity}
-          onChange={(e) => setCapacity(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="w-fit rounded bg-slate-100 px-4 py-2 text-slate-950"
-        >
-          Save
-        </button>
+      {archived ? (
+        <AdminCard>
+          <p className="text-sm text-[var(--sp-muted)]">
+            This project is archived and cannot be used for new packages. Click{" "}
+            <strong className="text-[var(--sp-navy)]">resume</strong> to make it
+            ACTIVE again.
+          </p>
+        </AdminCard>
+      ) : null}
+
+      <form onSubmit={save} className="grid gap-4 lg:grid-cols-2">
+        <AdminCard className="space-y-3">
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Name</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={name}
+              disabled={archived}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Description</span>
+            <textarea
+              disabled={archived}
+              className="mt-1 min-h-28 w-full rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] outline-none ring-[var(--sp-lime)] focus:ring-2 disabled:bg-[var(--sp-surface)]"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </label>
+        </AdminCard>
+        <AdminCard className="space-y-3">
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Location</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={location}
+              disabled={archived}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[var(--sp-navy)]">Capacity</span>
+            <AdminInput
+              className="mt-1 w-full"
+              value={capacity}
+              disabled={archived}
+              onChange={(e) => setCapacity(e.target.value)}
+            />
+          </label>
+          {!archived ? (
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--sp-navy)] px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Save
+            </button>
+          ) : null}
+        </AdminCard>
       </form>
 
       <div className="flex flex-wrap gap-2">
-        {(["publish", "pause", "resume", "complete", "archive"] as const).map(
-          (action) => (
-            <button
-              key={action}
-              type="button"
-              className="rounded bg-emerald-500/90 px-3 py-2 text-sm text-slate-950"
-              onClick={() => void act(action)}
-            >
-              {action}
-            </button>
-          ),
-        )}
+        {actions.map((action) => (
+          <button
+            key={action}
+            type="button"
+            className="rounded-xl bg-[var(--sp-lime)] px-4 py-2 text-sm font-semibold text-white"
+            onClick={() => void act(action)}
+          >
+            {action === "resume" &&
+            (project.status === "ARCHIVED" || project.status === "COMPLETED")
+              ? "Reactivate"
+              : action}
+          </button>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">Uploads</h2>
-        <label className="text-sm text-slate-400">
-          Image{" "}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void upload("IMAGE", f);
-            }}
-          />
-        </label>
-        <label className="text-sm text-slate-400">
-          Document{" "}
-          <input
-            type="file"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void upload("DOCUMENT", f);
-            }}
-          />
-        </label>
+      <AdminCard className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--sp-navy)]">
+          Uploads
+        </h2>
+        {!archived ? (
+          <>
+            <label className="block text-sm text-[var(--sp-muted)]">
+              Image
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 block w-full text-sm"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void upload("IMAGE", f);
+                }}
+              />
+            </label>
+            <label className="block text-sm text-[var(--sp-muted)]">
+              Document
+              <input
+                type="file"
+                className="mt-1 block w-full text-sm"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void upload("DOCUMENT", f);
+                }}
+              />
+            </label>
+          </>
+        ) : null}
         <ul className="space-y-1 text-sm">
           {documents.map((d) => (
             <li key={d.id}>
               {d.kind}:{" "}
               <a
-                className="text-emerald-400"
+                className="font-medium text-[var(--sp-lime-deep)]"
                 href={`/api/admin/projects/${project.id}/documents/${d.id}`}
                 target="_blank"
                 rel="noreferrer"
@@ -209,11 +276,14 @@ export default function AdminProjectDetailPage() {
               </a>
             </li>
           ))}
+          {documents.length === 0 ? (
+            <li className="text-[var(--sp-muted)]">No uploads yet.</li>
+          ) : null}
         </ul>
-      </div>
+      </AdminCard>
 
-      {error ? <p className="text-red-400">{error}</p> : null}
-      {message ? <p className="text-emerald-400">{message}</p> : null}
-    </main>
+      {error ? <p className="text-[var(--sp-danger)]">{error}</p> : null}
+      {message ? <p className="text-[var(--sp-lime-deep)]">{message}</p> : null}
+    </div>
   );
 }
