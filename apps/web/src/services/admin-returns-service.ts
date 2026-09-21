@@ -105,20 +105,25 @@ export async function listEligibleReturns(input: {
 
   const items = [];
   for (const row of rows) {
-    const prior = await sumPriorDeltas(row.inv.id);
-    const preview = previewForInvestment(row.inv, prior, now);
-    if (input.eligibleOnly !== false && !preview.eligible) continue;
-    items.push({
-      id: row.inv.id,
-      userEmail: row.userEmail,
-      packageName: row.packageName,
-      projectName: row.projectName,
-      status: row.inv.status,
-      principal: row.inv.principal,
-      startAt: row.inv.startAt,
-      maturityAt: row.inv.maturityAt,
-      ...preview,
-    });
+    try {
+      const prior = await sumPriorDeltas(row.inv.id);
+      const preview = previewForInvestment(row.inv, prior, now);
+      if (input.eligibleOnly !== false && !preview.eligible) continue;
+      items.push({
+        id: row.inv.id,
+        userEmail: row.userEmail,
+        packageName: row.packageName,
+        projectName: row.projectName,
+        status: row.inv.status,
+        principal: row.inv.principal,
+        startAt: row.inv.startAt,
+        maturityAt: row.inv.maturityAt,
+        ...preview,
+      });
+    } catch {
+      // Skip corrupt rows (e.g. maturityAt < startAt) so the list still loads.
+      continue;
+    }
   }
   return items;
 }
