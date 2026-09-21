@@ -17,6 +17,16 @@ type Dashboard = {
   pendingWithdrawals: number;
   pendingPayoutAccounts: number;
   pendingDeposits: number;
+  money: {
+    activePrincipal: number;
+    expectedMaturityValue: number;
+    maturedPrincipal: number;
+    returnsCredited: number;
+    walletLiability: number;
+    pendingDepositAmount: number;
+    pendingWithdrawalAmount: number;
+    currency: string;
+  };
 };
 
 type InvestmentRow = {
@@ -158,6 +168,61 @@ export default function AdminDashboardPage() {
               </Link>
             ))}
           </div>
+
+          <AdminCard className="overflow-hidden !p-0">
+            <div className="grid grid-cols-2 divide-x divide-y divide-[var(--sp-border)] md:grid-cols-3 xl:grid-cols-7 xl:divide-y-0">
+              {[
+                {
+                  title: "Active principal",
+                  value: data.money?.activePrincipal ?? 0,
+                  href: "/admin/investments",
+                },
+                {
+                  title: "Expected maturity",
+                  value: data.money?.expectedMaturityValue ?? 0,
+                  href: "/admin/investments",
+                },
+                {
+                  title: "Matured principal",
+                  value: data.money?.maturedPrincipal ?? 0,
+                  href: "/admin/maturities",
+                },
+                {
+                  title: "Returns credited",
+                  value: data.money?.returnsCredited ?? 0,
+                  href: "/admin/returns",
+                },
+                {
+                  title: "Wallet liability",
+                  value: data.money?.walletLiability ?? 0,
+                  href: "/admin/users",
+                },
+                {
+                  title: "Pending deposits",
+                  value: data.money?.pendingDepositAmount ?? 0,
+                  href: "/admin/deposits",
+                },
+                {
+                  title: "Pending withdrawals",
+                  value: data.money?.pendingWithdrawalAmount ?? 0,
+                  href: "/admin/withdrawals",
+                },
+              ].map((tile) => (
+                <Link
+                  key={tile.title}
+                  href={tile.href}
+                  className="px-3 py-3 transition hover:bg-[var(--sp-surface)]"
+                >
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--sp-muted)]">
+                    {tile.title}
+                  </p>
+                  <p className="mt-1 text-base font-bold text-[var(--sp-navy)] sm:text-lg">
+                    {formatAmount(tile.value, data.money?.currency ?? "NGN")}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </AdminCard>
 
           <div className="grid gap-4 xl:grid-cols-3">
             <AdminCard className="xl:col-span-2">
