@@ -17,6 +17,7 @@ export const investmentPackages = pgTable(
       .references(() => projects.id, { onDelete: "restrict" }),
     name: text("name").notNull(),
     description: text("description"),
+    bannerImage: text("banner_image"),
     status: text("status").notNull().default("DRAFT"),
     lotPrice: text("lot_price").notNull(),
     totalLots: integer("total_lots").notNull(),

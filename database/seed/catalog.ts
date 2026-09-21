@@ -45,6 +45,14 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   { code: "reports.read", name: "Read reports" },
   { code: "settings.read", name: "Read system settings" },
   { code: "settings.update", name: "Update system settings" },
+  {
+    code: "payment_accounts.read",
+    name: "Read platform payment accounts",
+  },
+  {
+    code: "payment_accounts.write",
+    name: "Manage platform payment accounts",
+  },
 ];
 
 export const ALL_PERMISSION_CODES = PERMISSION_CATALOG.map((p) => p.code);
@@ -112,6 +120,8 @@ export const ROLE_PERMISSION_CODES: Record<string, string[]> = {
     "returns.calculate",
     "maturities.read",
     "maturities.process",
+    "payment_accounts.read",
+    "payment_accounts.write",
   ],
   INVESTMENT_MANAGER: [
     "projects.create",

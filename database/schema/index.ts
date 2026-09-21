@@ -13,6 +13,7 @@ export { rolePermissions } from "./role-permissions";
 export { verificationRequests } from "./verification-requests";
 export { verificationDocuments } from "./verification-documents";
 export { payoutAccounts } from "./payout-accounts";
+export { platformPaymentAccounts } from "./platform-payment-accounts";
 export { projects } from "./projects";
 export { projectDocuments } from "./project-documents";
 export { investmentPackages } from "./investment-packages";
