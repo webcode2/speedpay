@@ -5,17 +5,22 @@ import { getEnv } from "@/env";
 
 type Db = PostgresJsDatabase<typeof schema>;
 
-let client: ReturnType<typeof postgres> | undefined;
-let dbInstance: Db | undefined;
+const globalForDb = globalThis as unknown as {
+  __solarPg?: ReturnType<typeof postgres>;
+  __solarDb?: Db;
+};
 
 /** Lazily construct the Drizzle client. Throws if DATABASE_URL is missing/invalid. */
 export function getDb(): Db {
-  if (!dbInstance) {
+  if (!globalForDb.__solarDb) {
     const { DATABASE_URL } = getEnv();
-    client = postgres(DATABASE_URL, {
-      max: 10,
+    // Keep pool small; Next.js HMR must reuse this via globalThis or it leaks clients.
+    globalForDb.__solarPg = postgres(DATABASE_URL, {
+      max: 5,
+      idle_timeout: 20,
+      max_lifetime: 60 * 30,
     });
-    dbInstance = drizzle(client, { schema });
+    globalForDb.__solarDb = drizzle(globalForDb.__solarPg, { schema });
   }
-  return dbInstance;
+  return globalForDb.__solarDb;
 }
