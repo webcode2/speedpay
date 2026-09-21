@@ -18,6 +18,10 @@ import {
 import { registerUser } from "@/services/auth-service";
 import { createDeposit, verifyDeposit } from "@/services/deposit-service";
 import { createPayoutAccount } from "@/services/payout-account-service";
+import {
+  createPaymentAccount,
+  publishPaymentAccount,
+} from "@/services/platform-payment-account-service";
 import { listInvestments } from "@/services/portfolio-service";
 import { updateProfile } from "@/services/profile-service";
 import { purchasePackage } from "@/services/purchase-service";
@@ -112,9 +116,19 @@ describeE2E("E2E investor lifecycle", () => {
         returnType: "FIXED_RETURN",
         returnRate: "10",
         durationDays: 30,
+        bannerImage: "packages/banners/e2e-investor.jpg",
       });
       packageId = pkg.id;
       await activatePackage(adminId, packageId);
+
+      const payAcct = await createPaymentAccount(adminId, {
+        type: "BANK",
+        label: `E2E Bank ${Date.now()}`,
+        accountName: "SPEED PAY E2E",
+        accountNumber: "999000111",
+        bankName: "E2E Bank",
+      });
+      await publishPaymentAccount(adminId, payAcct.id);
 
       const { deposit } = await createDeposit(userId, 5000);
       const verified = await verifyDeposit(userId, deposit.id);

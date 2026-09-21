@@ -52,6 +52,7 @@ describeE2E("E2E admin lifecycle", () => {
         returnType: "FIXED_RETURN",
         returnRate: "12",
         durationDays: 90,
+        bannerImage: "packages/banners/e2e-admin.jpg",
       });
       expect(pkg.status).toBe("DRAFT");
 
