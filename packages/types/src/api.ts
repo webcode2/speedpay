@@ -13,7 +13,11 @@ export type ApiErrorCode =
   | "NOT_FOUND"
   | "KYC_REQUIRED"
   | "INVALID_STATE"
-  | "INSUFFICIENT_BALANCE";
+  | "INSUFFICIENT_BALANCE"
+  | "TASKS_NOT_ELIGIBLE"
+  | "TASK_LIMIT_REACHED"
+  | "TASK_ALREADY_COMPLETED"
+  | "SERVICE_UNAVAILABLE";
 
 export type ApiErrorBody = {
   code: ApiErrorCode;

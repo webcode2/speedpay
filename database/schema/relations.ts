@@ -4,22 +4,16 @@ import { adminSessions } from "./admin-sessions";
 import { admins } from "./admins";
 import { permissions } from "./permissions";
 import { payoutAccounts } from "./payout-accounts";
-import { projectDocuments } from "./project-documents";
-import { projects } from "./projects";
-import { investmentPackages } from "./investment-packages";
-import { packageVersions } from "./package-versions";
+import { platformPaymentAccounts } from "./platform-payment-accounts";
+import { investmentPlans } from "./investment-plans";
 import { ledgerAccounts } from "./ledger-accounts";
 import { ledgerEntries } from "./ledger-entries";
 import { walletTransactions } from "./wallet-transactions";
 import { wallets } from "./wallets";
 import { deposits } from "./deposits";
 import { investments } from "./investments";
-import { investmentLots } from "./investment-lots";
-import { investmentAccruals } from "./investment-accruals";
 import { withdrawalPins } from "./withdrawal-pins";
 import { withdrawals } from "./withdrawals";
-import { maturities } from "./maturities";
-import { reinvestments } from "./reinvestments";
 import { notificationTemplates } from "./notification-templates";
 import { notifications } from "./notifications";
 import { rolePermissions } from "./role-permissions";
@@ -145,40 +139,12 @@ export const payoutAccountsRelations = relations(payoutAccounts, ({ one }) => ({
   }),
 }));
 
-export const projectsRelations = relations(projects, ({ many }) => ({
-  documents: many(projectDocuments),
-  packages: many(investmentPackages),
-}));
-
-export const projectDocumentsRelations = relations(
-  projectDocuments,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectDocuments.projectId],
-      references: [projects.id],
-    }),
-  }),
-);
-
-export const investmentPackagesRelations = relations(
-  investmentPackages,
-  ({ one, many }) => ({
-    project: one(projects, {
-      fields: [investmentPackages.projectId],
-      references: [projects.id],
-    }),
-    versions: many(packageVersions),
+export const investmentPlansRelations = relations(
+  investmentPlans,
+  ({ many }) => ({
     investments: many(investments),
-    investmentLots: many(investmentLots),
   }),
 );
-
-export const packageVersionsRelations = relations(packageVersions, ({ one }) => ({
-  package: one(investmentPackages, {
-    fields: [packageVersions.packageId],
-    references: [investmentPackages.id],
-  }),
-}));
 
 export const walletsRelations = relations(wallets, ({ one, many }) => ({
   user: one(users, {
@@ -226,6 +192,14 @@ export const depositsRelations = relations(deposits, ({ one }) => ({
     fields: [deposits.walletTransactionId],
     references: [walletTransactions.id],
   }),
+  paymentAccount: one(platformPaymentAccounts, {
+    fields: [deposits.paymentAccountId],
+    references: [platformPaymentAccounts.id],
+  }),
+  approvedByAdmin: one(admins, {
+    fields: [deposits.approvedByAdminId],
+    references: [admins.id],
+  }),
 }));
 
 export const investmentsRelations = relations(investments, ({ one, many }) => ({
@@ -233,19 +207,9 @@ export const investmentsRelations = relations(investments, ({ one, many }) => ({
     fields: [investments.userId],
     references: [users.id],
   }),
-  package: one(investmentPackages, {
-    fields: [investments.packageId],
-    references: [investmentPackages.id],
-  }),
-  packageVersion: one(packageVersions, {
-    fields: [investments.packageVersionId],
-    references: [packageVersions.id],
-  }),
-  lots: many(investmentLots),
-  accruals: many(investmentAccruals),
-  maturity: one(maturities, {
-    fields: [investments.id],
-    references: [maturities.investmentId],
+  plan: one(investmentPlans, {
+    fields: [investments.planId],
+    references: [investmentPlans.id],
   }),
   parent: one(investments, {
     fields: [investments.parentInvestmentId],
@@ -253,43 +217,7 @@ export const investmentsRelations = relations(investments, ({ one, many }) => ({
     relationName: "investmentParent",
   }),
   children: many(investments, { relationName: "investmentParent" }),
-  reinvestmentsAsParent: many(reinvestments, {
-    relationName: "reinvestmentParent",
-  }),
 }));
-
-export const investmentLotsRelations = relations(investmentLots, ({ one }) => ({
-  investment: one(investments, {
-    fields: [investmentLots.investmentId],
-    references: [investments.id],
-  }),
-  package: one(investmentPackages, {
-    fields: [investmentLots.packageId],
-    references: [investmentPackages.id],
-  }),
-}));
-
-export const investmentAccrualsRelations = relations(
-  investmentAccruals,
-  ({ one }) => ({
-    investment: one(investments, {
-      fields: [investmentAccruals.investmentId],
-      references: [investments.id],
-    }),
-    user: one(users, {
-      fields: [investmentAccruals.userId],
-      references: [users.id],
-    }),
-    createdByAdmin: one(admins, {
-      fields: [investmentAccruals.createdBy],
-      references: [admins.id],
-    }),
-    walletTransaction: one(walletTransactions, {
-      fields: [investmentAccruals.walletTransactionId],
-      references: [walletTransactions.id],
-    }),
-  }),
-);
 
 export const withdrawalPinsRelations = relations(withdrawalPins, ({ one }) => ({
   user: one(users, {
@@ -320,38 +248,6 @@ export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
     fields: [withdrawals.processedBy],
     references: [admins.id],
     relationName: "withdrawalProcessedBy",
-  }),
-}));
-
-export const maturitiesRelations = relations(maturities, ({ one }) => ({
-  investment: one(investments, {
-    fields: [maturities.investmentId],
-    references: [investments.id],
-  }),
-  user: one(users, {
-    fields: [maturities.userId],
-    references: [users.id],
-  }),
-  processedByAdmin: one(admins, {
-    fields: [maturities.processedBy],
-    references: [admins.id],
-  }),
-}));
-
-export const reinvestmentsRelations = relations(reinvestments, ({ one }) => ({
-  parent: one(investments, {
-    fields: [reinvestments.parentInvestmentId],
-    references: [investments.id],
-    relationName: "reinvestmentParent",
-  }),
-  newInvestment: one(investments, {
-    fields: [reinvestments.newInvestmentId],
-    references: [investments.id],
-    relationName: "reinvestmentChild",
-  }),
-  user: one(users, {
-    fields: [reinvestments.userId],
-    references: [users.id],
   }),
 }));
 

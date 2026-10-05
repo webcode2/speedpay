@@ -14,7 +14,12 @@ export const NOTIFICATION_TEMPLATE_SEED = [
   {
     code: "INVESTMENT_CREATED",
     title: "Investment confirmed",
-    body: "You invested {{amount}} in {{packageName}}.",
+    body: "You invested {{amount}} in {{planName}}.",
+  },
+  {
+    code: "TASK_REWARD",
+    title: "Task reward",
+    body: "You earned {{amount}} for reviewing {{itemTitle}}.",
   },
   {
     code: "DEPOSIT_COMPLETED",
@@ -30,16 +35,6 @@ export const NOTIFICATION_TEMPLATE_SEED = [
     code: "WITHDRAWAL_COMPLETED",
     title: "Withdrawal completed",
     body: "Your withdrawal of {{amount}} has been processed.",
-  },
-  {
-    code: "INVESTMENT_MATURED",
-    title: "Investment matured",
-    body: "Your investment matured. {{maturityValue}} was credited to your wallet.",
-  },
-  {
-    code: "REINVESTMENT_COMPLETED",
-    title: "Reinvestment complete",
-    body: "You reinvested {{amount}} into a new package.",
   },
 ] as const;
 

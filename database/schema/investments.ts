@@ -1,5 +1,6 @@
 import {
   bigint,
+  date,
   index,
   integer,
   pgTable,
@@ -9,8 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { investmentPackages } from "./investment-packages";
-import { packageVersions } from "./package-versions";
+import { investmentPlans } from "./investment-plans";
 import { users } from "./users";
 
 export const investments = pgTable(
@@ -20,15 +20,14 @@ export const investments = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
-    packageId: uuid("package_id")
+    planId: uuid("plan_id")
       .notNull()
-      .references(() => investmentPackages.id, { onDelete: "restrict" }),
-    packageVersionId: uuid("package_version_id").references(
-      () => packageVersions.id,
-      { onDelete: "restrict" },
-    ),
+      .references(() => investmentPlans.id, { onDelete: "restrict" }),
+    planVersionId: uuid("plan_version_id"),
     principal: bigint("principal", { mode: "number" }).notNull(),
-    lotCount: integer("lot_count").notNull(),
+    dailyRoi: bigint("daily_roi", { mode: "number" }).notNull().default(0),
+    lastRoiOn: date("last_roi_on", { mode: "string" }),
+    slotCount: integer("slot_count").notNull(),
     startAt: timestamp("start_at", { withTimezone: true }).notNull(),
     maturityAt: timestamp("maturity_at", { withTimezone: true }).notNull(),
     returnType: text("return_type").notNull(),
@@ -45,7 +44,7 @@ export const investments = pgTable(
   },
   (t) => [
     index("investments_user_id_idx").on(t.userId),
-    index("investments_package_id_idx").on(t.packageId),
+    index("investments_plan_id_idx").on(t.planId),
     index("investments_status_idx").on(t.status),
     index("investments_parent_id_idx").on(t.parentInvestmentId),
     uniqueIndex("investments_user_idempotency_uid")
