@@ -75,10 +75,10 @@ export default function NewStaffPage() {
         />
         <input
           className="rounded border border-slate-600 bg-slate-900 px-3 py-2"
-          placeholder="Password (min 8)"
+          placeholder="Password (min 7)"
           type="password"
           required
-          minLength={8}
+          minLength={7}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

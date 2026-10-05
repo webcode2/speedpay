@@ -28,7 +28,8 @@ type Meta = {
 };
 
 async function assertPasswordPolicy(password: string) {
-  const min = await getSettingNumber("security.password_min_length", 6);
+  const minSetting = await getSettingNumber("security.password_min_length", 7);
+  const min = Math.min(minSetting, 7);
   if (password.length < min) {
     throw new AppError(
       "VALIDATION_ERROR",

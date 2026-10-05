@@ -132,7 +132,8 @@ export default function StaffDetailPage() {
               <input
                 className="mt-1 w-full rounded border border-slate-600 bg-slate-900 px-3 py-2"
                 type="password"
-                minLength={8}
+                minLength={7}
+                placeholder="Min 7 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

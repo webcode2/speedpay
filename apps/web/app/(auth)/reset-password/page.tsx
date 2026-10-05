@@ -32,8 +32,8 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 12) {
-      setError("Password must be at least 12 characters long.");
+    if (password.length < 7) {
+      setError("Password must be at least 7 characters long.");
       return;
     }
 
@@ -75,7 +75,7 @@ function ResetPasswordForm() {
           Create New Password
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Set a secure new password of at least 12 characters
+          Set a secure new password of at least 7 characters
         </p>
       </div>
 
@@ -129,7 +129,7 @@ function ResetPasswordForm() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              New Password <span className="text-slate-500 font-normal">(min 12 characters)</span>
+              New Password <span className="text-slate-500 font-normal">(min 7 characters)</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -138,7 +138,7 @@ function ResetPasswordForm() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                minLength={12}
+                minLength={7}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
@@ -165,7 +165,7 @@ function ResetPasswordForm() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                minLength={12}
+                minLength={7}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••••••"

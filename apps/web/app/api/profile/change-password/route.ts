@@ -7,7 +7,7 @@ import { changePassword } from "@/services/auth-service";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  newPassword: z.string().min(7, "New password must be at least 7 characters"),
 });
 
 async function requireUser(request: Request) {

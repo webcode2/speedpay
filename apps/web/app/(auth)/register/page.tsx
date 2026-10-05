@@ -56,8 +56,8 @@ function RegisterForm() {
       setError("Please enter your password.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 7) {
+      setError("Password must be at least 7 characters.");
       return;
     }
     if (captchaInput.trim().toUpperCase() !== captchaCode) {
@@ -197,9 +197,10 @@ function RegisterForm() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  minLength={7}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="Enter your password (min 7 chars)"
                   className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
                 />
                 <button

@@ -5,7 +5,7 @@ export const registerSchema = z.object({
     (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
     z.string().email(),
   ),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(7, "Password must be at least 7 characters"),
   phone: z.string().trim().min(7).max(20).nullish(),
   inviteCode: z.preprocess(
     (value) =>
@@ -34,5 +34,5 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1),
-  password: z.string().min(12, "Password must be at least 12 characters"),
+  password: z.string().min(7, "Password must be at least 7 characters"),
 });
