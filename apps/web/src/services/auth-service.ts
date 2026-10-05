@@ -85,7 +85,8 @@ export async function registerUser(
         email: input.email,
         phone: input.phone || null,
         passwordHash,
-        status: "EMAIL_UNVERIFIED",
+        status: "ACTIVE",
+        emailVerifiedAt: new Date(),
         referralCode: referralCodeFromId(id),
         referredByUserId,
       })

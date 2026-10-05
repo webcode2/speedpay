@@ -7,7 +7,7 @@ export const users = pgTable(
     email: text("email").notNull(),
     phone: text("phone"),
     passwordHash: text("password_hash").notNull(),
-    status: text("status").notNull().default("EMAIL_UNVERIFIED"),
+    status: text("status").notNull().default("ACTIVE"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     phoneVerifiedAt: timestamp("phone_verified_at", { withTimezone: true }),
     referralCode: text("referral_code").notNull(),
