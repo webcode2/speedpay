@@ -2,18 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Package,
   Zap,
   CheckCircle2,
-  ArrowRight,
-  Sparkles,
   AlertCircle,
-  Clock,
-  Coins,
-  ShieldCheck,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";

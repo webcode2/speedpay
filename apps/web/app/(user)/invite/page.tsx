@@ -11,12 +11,8 @@ import {
   Coins,
   Copy,
   Check,
-  Share2,
   MessageCircle,
   X,
-  Sparkles,
-  ShieldCheck,
-  TrendingUp,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";
 
@@ -53,7 +49,6 @@ export default function InvitePage() {
   const isDark = theme === "dark";
 
   const [teamData, setTeamData] = useState<TeamData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -72,8 +67,7 @@ export default function InvitePage() {
           setTeamData(d.data.team);
         }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
 
   const copyCode = () => {

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { formatAmount } from "@/lib/money";
 import {
   AdminCard,
@@ -42,7 +42,6 @@ type DepositDetail = {
 
 export default function AdminDepositDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const id = params?.id;
 
   const [deposit, setDeposit] = useState<DepositDetail | null>(null);
@@ -56,7 +55,7 @@ export default function AdminDepositDetailPage() {
   const [showRejectModal, setShowRejectModal] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const fetchDeposit = async () => {
+  const fetchDeposit = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -76,11 +75,11 @@ export default function AdminDepositDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     void fetchDeposit();
-  }, [id]);
+  }, [fetchDeposit]);
 
   const handleApprove = async () => {
     if (!confirm("Are you sure you want to approve this deposit and credit the user's wallet?")) {
@@ -233,6 +232,7 @@ export default function AdminDepositDetailPage() {
                           rel="noopener noreferrer"
                           className="block max-w-sm rounded-xl overflow-hidden border border-[var(--sp-border)] hover:opacity-95"
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={deposit.receiptUrl}
                             alt="Payment Receipt"

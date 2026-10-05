@@ -7,7 +7,6 @@ import {
   CheckSquare,
   Star,
   CheckCircle2,
-  Clock,
   Sparkles,
   AlertCircle,
   ArrowRight,
@@ -46,7 +45,6 @@ export default function TasksPage() {
   const [taskData, setTaskData] = useState<TaskData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -113,29 +111,10 @@ export default function TasksPage() {
     setCompletedReward(null);
   };
 
-  const tasksCompleted = taskData?.completedToday ?? 0;
-  const totalQuota = taskData?.dailyLimit ?? (tasksCompleted + (taskData?.remaining ?? 0));
-  const progressPercent = totalQuota > 0 ? Math.min(100, Math.round((tasksCompleted / totalQuota) * 100)) : 0;
-
-  const dynamicCategories = [
-    { id: "ALL", label: "All Tasks" },
-    ...(taskData?.categories?.map((cat) => ({
-      id: cat,
-      label: cat.replace(/_/g, " "),
-    })) || [
-        { id: "PRODUCT_REVIEW", label: "Product Reviews" },
-        { id: "APP_TEST", label: "App Testing" },
-        { id: "SURVEY", label: "Surveys" },
-      ]),
-  ];
-
   const isEligible = taskData ? taskData.eligible : Boolean(activePlan);
   const allowedLimit = taskData?.dailyLimit ?? activePlan?.dailyTasks ?? 0;
 
-  const filteredTasks =
-    taskData?.items?.filter(
-      (item) => activeCategory === "ALL" || item.category === activeCategory,
-    ) ?? [];
+  const filteredTasks = taskData?.items ?? [];
 
   // Enforce plan quota: user is only allowed to see only the amount of tasks their plan carries
   const quotaTasks = isEligible && allowedLimit > 0

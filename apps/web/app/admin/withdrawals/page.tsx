@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  AdminCard,
   AdminPageHeader,
   AdminSelect,
   AdminTable,

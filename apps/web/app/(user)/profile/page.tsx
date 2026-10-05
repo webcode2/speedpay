@@ -23,7 +23,6 @@ import {
   X,
   Copy,
   Check,
-  ShieldCheck,
   ExternalLink,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";
@@ -39,7 +38,6 @@ type PayoutAccount = {
 export default function ProfilePage() {
   const { user, wallet, activePlan, taskSummary, logout, theme } = useUser();
   const [payoutAccounts, setPayoutAccounts] = useState<PayoutAccount[]>([]);
-  const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
   const isDark = theme === "dark";
 
@@ -84,7 +82,6 @@ export default function ProfilePage() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [resettingPin, setResettingPin] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
@@ -113,8 +110,6 @@ export default function ProfilePage() {
       }
     } catch {
       // ignore
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -197,7 +192,6 @@ export default function ProfilePage() {
     setSendingOtp(true);
     setResetError(null);
     setOtpMessage(null);
-    setDevOtp(null);
 
     try {
       const res = await fetch("/api/withdrawal-pin/reset-otp", {
@@ -211,7 +205,6 @@ export default function ProfilePage() {
         setOtpSent(true);
         setOtpMessage(data.data?.message || "OTP sent to your registered email");
         if (data.data?.devOtp) {
-          setDevOtp(data.data.devOtp);
           setResetOtp(data.data.devOtp);
         }
       }
@@ -531,6 +524,7 @@ export default function ProfilePage() {
       >
         {/* Background Scenic Graphic */}
         <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 pointer-events-none">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/solar_plant.jpg"
             alt="Scenic"

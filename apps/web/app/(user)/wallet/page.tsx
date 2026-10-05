@@ -10,13 +10,11 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Building2,
   Lock,
   ArrowDownLeft,
   History,
   ShieldCheck,
   Zap,
-  Sparkles,
   Check,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";

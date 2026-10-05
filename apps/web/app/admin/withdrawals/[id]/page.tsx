@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   AdminCard,
@@ -29,7 +29,6 @@ type Detail = {
 
 export default function AdminWithdrawalDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const permissions = useAdminPermissions();
 
   const canApprove = hasAnyPermission(permissions, ["withdrawals.approve"]);

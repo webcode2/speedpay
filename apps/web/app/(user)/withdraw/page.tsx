@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -14,10 +13,7 @@ import {
   PlusCircle,
   CheckCircle2,
   AlertCircle,
-  ArrowRight,
-  ShieldCheck,
   X,
-  Clock,
   RotateCw,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";
@@ -51,7 +47,6 @@ export default function WithdrawPage() {
   const [confirmPin, setConfirmPin] = useState("");
   const [settingPin, setSettingPin] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
-  const [pinSuccess, setPinSuccess] = useState<string | null>(null);
 
   // Withdrawal form state
   const [payoutAccounts, setPayoutAccounts] = useState<PayoutAccount[]>([]);
@@ -127,7 +122,6 @@ export default function WithdrawPage() {
       }
 
       setHasPin(true);
-      setPinSuccess("Trade password set successfully!");
       setShowSetPinModal(false);
       setNewPin("");
       setConfirmPin("");

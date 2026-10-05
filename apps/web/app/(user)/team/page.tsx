@@ -8,9 +8,7 @@ import {
   UserPlus,
   UserCheck,
   RotateCw,
-  Coins,
   Shield,
-  Star,
   ChevronRight,
   ChevronDown,
   Share2,
@@ -18,11 +16,8 @@ import {
   X,
   Copy,
   Check,
-  ExternalLink,
   MessageCircle,
-  Zap,
   ArrowRight,
-  TrendingUp,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";
 
@@ -57,7 +52,6 @@ export default function TeamPage() {
   const { user, wallet, activePlan, theme } = useUser();
   const isDark = theme === "dark";
   const [teamData, setTeamData] = useState<TeamData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<"month" | "week" | "today" | "all">("month");
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
 
@@ -86,8 +80,7 @@ export default function TeamPage() {
           setTeamData(d.data.team);
         }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
 
   const copyCode = () => {

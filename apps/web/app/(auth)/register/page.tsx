@@ -4,28 +4,68 @@ import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, Phone, Users, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Globe, RotateCw } from "lucide-react";
+
+function generateCaptcha(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
+
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
+  const [captchaCode, setCaptchaCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setCaptchaCode(generateCaptcha());
     const ref = searchParams.get("ref") || searchParams.get("code") || searchParams.get("invite");
     if (ref) {
       setInviteCode(ref.trim().toUpperCase());
     }
   }, [searchParams]);
 
+  const refreshCaptcha = () => {
+    setCaptchaCode(generateCaptcha());
+    setCaptchaInput("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phone.trim()) {
+      setError("Please enter your phone number.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (captchaInput.trim().toUpperCase() !== captchaCode) {
+      setError("Captcha code does not match. Please try again.");
+      refreshCaptcha();
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -34,8 +74,8 @@ function RegisterForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
-          phone: phone.trim() || undefined,
+          phone: phone.trim(),
+          email: email.trim().toLowerCase(),
           password,
           inviteCode: inviteCode.trim() ? inviteCode.trim() : undefined,
         }),
@@ -57,146 +97,213 @@ function RegisterForm() {
   };
 
   return (
-    <div className="glass-panel p-8 rounded-3xl border border-slate-800/80 shadow-2xl backdrop-blur-xl">
-      {/* Brand Header */}
-      <div className="text-center mb-6">
-        <div className="relative w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-3 shadow-xl shadow-[#40b020]/20 border border-slate-700/60">
-          <Image
-            src="/logo_TRANSPARENT.jpeg"
-            alt="SPEED PAY Logo"
-            fill
-            className="object-cover"
-            priority
-          />
+    <div className="flex flex-col min-h-screen sm:min-h-[700px] bg-white">
+      {/* 1. Hero Image Banner */}
+      <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900 select-none">
+        <Image
+          src="/images/auth_night_resort.jpg"
+          alt="Night resort pool"
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
+
+        {/* Top-Right Language Globe Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            type="button"
+            className="w-8 h-8 rounded-full bg-black/25 backdrop-blur-md border border-white/25 flex items-center justify-center text-white/90 hover:bg-black/40 hover:text-white transition active:scale-95"
+            title="Language"
+            onClick={() => alert("English is currently selected.")}
+          >
+            <Globe className="w-4 h-4" />
+          </button>
         </div>
-        <h1 className="text-2xl font-black tracking-tight text-white">
-          Create Account
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Join SPEED<span className="text-[#40b020]">PAY</span> & start earning from daily tasks
-        </p>
+
+        {/* Bottom Banner Branding & Titles */}
+        <div className="absolute bottom-9 left-5 right-5 z-10 text-white">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="w-5 h-5 rounded-md bg-black/70 border border-white/30 flex items-center justify-center">
+              <span className="text-[9px] font-black tracking-tighter text-white">SR</span>
+            </div>
+            <span className="text-[12px] font-bold tracking-tight text-white/95 drop-shadow">
+              SPEED PAY Corp
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md leading-tight">
+            Create account
+          </h1>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      {/* 2. White Card Form (Overlapping Banner) */}
+      <div className="relative -mt-6 rounded-t-[32px] bg-white px-6 pt-6 pb-8 flex-1 flex flex-col justify-between z-20 shadow-[-4px_-8px_24px_rgba(0,0,0,0.06)]">
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Email Address *
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Mail className="w-4 h-4" />
+          {error && (
+            <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium flex items-center gap-2 animate-shake">
+              <span>⚠️</span>
+              <span>{error}</span>
             </div>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] transition"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Phone Number (Optional)
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Phone className="w-4 h-4" />
-            </div>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="08012345678"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] transition"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Invite / Referral Code
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Users className="w-4 h-4" />
-            </div>
-            <input
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="INVITE CODE (Optional)"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] uppercase font-mono tracking-wider transition"
-            />
-            {inviteCode && (
-              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#40b020]">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Password (Min 12 characters) *
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Lock className="w-4 h-4" />
-            </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              minLength={12}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 12 characters"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] transition"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
-            >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-3 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#40b020] to-[#50b020] text-slate-950 font-bold text-sm hover:opacity-95 transition flex items-center justify-center gap-2 shadow-lg shadow-[#40b020]/25 disabled:opacity-50"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <span>Create Account</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
           )}
-        </button>
-      </form>
 
-      <div className="mt-5 text-center text-xs text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="text-[#40b020] font-bold hover:underline">
-          Sign In
-        </Link>
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Phone Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Phone
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3 shadow-sm">
+                <span className="font-bold text-slate-900 text-sm select-none pr-3">
+                  +234
+                </span>
+                <span className="h-4 w-[1px] bg-slate-300 mr-3" />
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Email
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3 shadow-sm">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Password
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3 shadow-sm">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-slate-600 transition pl-2 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Invite Code Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Invite code
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3 shadow-sm">
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder="Enter invite code"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium uppercase tracking-wider"
+                />
+              </div>
+            </div>
+
+            {/* Captcha Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Captcha
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  required
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  placeholder="Enter captcha"
+                  maxLength={6}
+                  className="flex-1 rounded-2xl bg-[#f5f6f8] border border-transparent focus:border-slate-300 focus:bg-white transition px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium shadow-sm uppercase tracking-wider"
+                />
+
+                {/* Styled Captcha Badge */}
+                <button
+                  type="button"
+                  onClick={refreshCaptcha}
+                  title="Click to refresh captcha"
+                  className="h-12 w-32 rounded-2xl bg-gradient-to-r from-[#eef2f8] via-[#e5ecf6] to-[#edf3fa] border border-slate-300/80 flex items-center justify-center font-serif text-lg tracking-[0.25em] font-black text-[#1b264f] shadow-inner select-none cursor-pointer relative overflow-hidden group active:scale-95 transition"
+                >
+                  {/* Decorative background noise lines */}
+                  <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#2a3b75_1px,transparent_1px)] [background-size:6px_6px]" />
+                  <span className="relative z-10 drop-shadow-sm transform skew-x-3 italic">
+                    {captchaCode || "JZCRF"}
+                  </span>
+                  <RotateCw className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition" />
+                </button>
+              </div>
+            </div>
+
+            {/* Register Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all shadow-md bg-[#181b22] hover:bg-black text-white cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <span className="inline-block animate-pulse">Creating account...</span>
+                ) : (
+                  "Register"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* 3. Footer Links */}
+        <div className="pt-5 text-center">
+          <p className="text-xs text-slate-500 font-medium">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-slate-900 hover:underline"
+            >
+              Log in
+            </Link>
+          </p>
+
+          <div className="flex items-center justify-center gap-2 mt-3 text-[11px] font-medium text-slate-400">
+            <Link href="/support" className="hover:text-slate-700 transition">
+              Terms
+            </Link>
+            <span>·</span>
+            <Link href="/support" className="hover:text-slate-700 transition">
+              Privacy
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -204,7 +311,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="text-center text-slate-400">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <RegisterForm />
     </Suspense>
   );

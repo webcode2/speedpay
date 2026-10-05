@@ -32,7 +32,7 @@ export const MOBILE_BOTTOM_TABS = [
 
 export function MobileTopHeader() {
   const pathname = usePathname();
-  const { wallet, theme, toggleTheme } = useUser();
+  const { theme, toggleTheme } = useUser();
   const [showLangModal, setShowLangModal] = useState(false);
   const [selectedLang, setSelectedLang] = useState("English");
   const isDark = theme === "dark";

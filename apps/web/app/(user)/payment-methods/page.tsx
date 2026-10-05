@@ -5,15 +5,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
-  PlusCircle,
   Building2,
   ShieldCheck,
   ChevronRight,
   X,
   Check,
-  CreditCard,
   Trash2,
-  Lock,
 } from "lucide-react";
 import { useUser } from "@/components/user-context";
 

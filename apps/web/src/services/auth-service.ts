@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, inArray, or } from "drizzle-orm";
 import { userProfiles, users } from "@solar/database/schema";
 import { hashPassword, verifyPassword } from "@/auth/password";
 import {
@@ -28,7 +28,7 @@ type Meta = {
 };
 
 async function assertPasswordPolicy(password: string) {
-  const min = await getSettingNumber("security.password_min_length", 12);
+  const min = await getSettingNumber("security.password_min_length", 6);
   if (password.length < min) {
     throw new AppError(
       "VALIDATION_ERROR",
@@ -109,23 +109,65 @@ export async function registerUser(
 }
 
 export async function loginUser(
-  input: { email: string; password: string },
+  input: {
+    email?: string;
+    phone?: string;
+    identifier?: string;
+    password: string;
+  },
   meta: Meta = {},
 ) {
   const db = getDb();
+  const ident = (input.identifier || input.phone || input.email || "").trim();
+  if (!ident) {
+    throw new AppError(
+      "INVALID_CREDENTIALS",
+      "Phone number or email is required.",
+      400,
+    );
+  }
+
+  const digits = ident.replace(/\D/g, "");
+  const candidates: string[] = [ident, ident.toLowerCase()];
+  if (digits.length >= 7) {
+    candidates.push(digits);
+    if (digits.startsWith("234")) {
+      candidates.push("+" + digits);
+      candidates.push("0" + digits.slice(3));
+    } else if (digits.startsWith("0")) {
+      candidates.push("+234" + digits.slice(1));
+    } else {
+      candidates.push("+234" + digits);
+      candidates.push("0" + digits);
+    }
+  }
+
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.email, input.email))
+    .where(
+      or(
+        inArray(users.email, candidates),
+        inArray(users.phone, candidates),
+      ),
+    )
     .limit(1);
 
   if (!user) {
-    throw new AppError("INVALID_CREDENTIALS", "Invalid email or password.", 401);
+    throw new AppError(
+      "INVALID_CREDENTIALS",
+      "Invalid credentials. Please verify your phone or password.",
+      401,
+    );
   }
 
   const ok = await verifyPassword(user.passwordHash, input.password);
   if (!ok) {
-    throw new AppError("INVALID_CREDENTIALS", "Invalid email or password.", 401);
+    throw new AppError(
+      "INVALID_CREDENTIALS",
+      "Invalid credentials. Please verify your phone or password.",
+      401,
+    );
   }
 
   if (user.status === "SUSPENDED" || user.status === "CLOSED") {

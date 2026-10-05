@@ -4,11 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Globe } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,6 +16,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phone.trim()) {
+      setError("Please enter your phone number");
+      return;
+    }
+    if (!password) {
+      setError("Please enter your password");
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -23,143 +32,178 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          phone: phone.trim(),
+          password,
+        }),
       });
       const data = await res.json();
 
       if (!data.success) {
-        setError(data.error?.message || "Invalid email or password");
+        setError(data.error?.message || "Invalid phone number or password");
         return;
       }
 
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const isFormFilled = phone.trim().length > 0 && password.length > 0;
+
   return (
-    <div className="glass-panel p-8 rounded-3xl border border-slate-800/80 shadow-2xl backdrop-blur-xl">
-      {/* Brand Header */}
-      <div className="text-center mb-8">
-        <div className="relative w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4 shadow-xl shadow-[#40b020]/20 border border-slate-700/60">
-          <Image
-            src="/logo_TRANSPARENT.jpeg"
-            alt="SPEED PAY Logo"
-            fill
-            className="object-cover"
-            priority
-          />
+    <div className="flex flex-col min-h-screen sm:min-h-[640px] bg-white">
+      {/* 1. Hero Image Banner */}
+      <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900 select-none">
+        <Image
+          src="/images/auth_day_resort.jpg"
+          alt="Resort landscape"
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        {/* Subtle top & bottom vignette */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" />
+
+        {/* Top-Right Language Globe Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            type="button"
+            className="w-8 h-8 rounded-full bg-black/25 backdrop-blur-md border border-white/25 flex items-center justify-center text-white/90 hover:bg-black/40 hover:text-white transition active:scale-95"
+            title="Language"
+            onClick={() => alert("English is currently selected.")}
+          >
+            <Globe className="w-4 h-4" />
+          </button>
         </div>
-        <h1 className="text-2xl font-black tracking-tight text-white">
-          Welcome to SPEED<span className="text-[#40b020]">PAY</span>
-        </h1>
-        <p className="text-sm text-slate-400 mt-1.5">
-          Sign in to access your daily tasks and earn rewards
-        </p>
+
+        {/* Bottom Banner Branding & Titles */}
+        <div className="absolute bottom-9 left-5 right-5 z-10 text-white">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="w-5 h-5 rounded-md bg-black/70 border border-white/30 flex items-center justify-center">
+              <span className="text-[9px] font-black tracking-tighter text-white">SR</span>
+            </div>
+            <span className="text-[12px] font-bold tracking-tight text-white/95 drop-shadow">
+              SPEED PAY Corp
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md leading-tight">
+            Welcome back
+          </h1>
+          <p className="text-xs font-medium text-white/85 mt-1 drop-shadow">
+            Sign in to discover, stay, and review
+          </p>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2 animate-shake">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* 2. White Card Form (Overlapping Banner) */}
+      <div className="relative -mt-6 rounded-t-[32px] bg-white px-6 pt-7 pb-8 flex-1 flex flex-col justify-between z-20 shadow-[-4px_-8px_24px_rgba(0,0,0,0.06)]">
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-            Email Address
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Mail className="w-4 h-4" />
+          {error && (
+            <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium flex items-center gap-2 animate-shake">
+              <span>⚠️</span>
+              <span>{error}</span>
             </div>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] transition"
-            />
-          </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Phone Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Phone
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3.5 shadow-sm">
+                <span className="font-bold text-slate-900 text-sm select-none pr-3">
+                  +234
+                </span>
+                <span className="h-4 w-[1px] bg-slate-300 mr-3" />
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Password
+              </label>
+              <div className="flex items-center rounded-2xl bg-[#f5f6f8] border border-transparent focus-within:border-slate-300 focus-within:bg-white transition px-4 py-3.5 shadow-sm">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="bg-transparent flex-1 text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-slate-600 transition pl-2 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Log in Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 ${
+                  isFormFilled
+                    ? "bg-[#1e2026] hover:bg-black text-white cursor-pointer shadow-slate-900/10"
+                    : "bg-[#71767e] hover:bg-[#60656d] text-white cursor-pointer"
+                }`}
+              >
+                {loading ? (
+                  <span className="inline-block animate-pulse">Logging in...</span>
+                ) : (
+                  "Log in"
+                )}
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-semibold text-slate-300">
-              Password
-            </label>
+        {/* 3. Footer Links */}
+        <div className="pt-6 text-center">
+          <p className="text-xs text-slate-500 font-medium">
+            No account yet?{" "}
             <Link
-              href="/forgot-password"
-              className="text-xs text-[#40b020] hover:underline font-medium"
+              href="/register"
+              className="font-bold text-slate-900 hover:underline"
             >
-              Forgot password?
+              Register
+            </Link>
+          </p>
+
+          <div className="flex items-center justify-center gap-2 mt-3 text-[11px] font-medium text-slate-400">
+            <Link href="/support" className="hover:text-slate-700 transition">
+              Terms
+            </Link>
+            <span>·</span>
+            <Link href="/support" className="hover:text-slate-700 transition">
+              Privacy
             </Link>
           </div>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Lock className="w-4 h-4" />
-            </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#40b020] focus:ring-1 focus:ring-[#40b020] transition"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
-            >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </button>
-          </div>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#40b020] to-[#50b020] text-slate-950 font-bold text-sm hover:opacity-95 transition flex items-center justify-center gap-2 shadow-lg shadow-[#40b020]/25 disabled:opacity-50"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <span>Sign In</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
-      </form>
-
-      <div className="mt-6 text-center text-xs text-slate-400">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/register"
-          className="text-[#40b020] font-bold hover:underline"
-        >
-          Create account
-        </Link>
-      </div>
-
-      <div className="mt-6 pt-4 border-t border-slate-800/80 text-center">
-        <Link
-          href="/admin/login"
-          className="text-xs text-slate-500 hover:text-slate-400 transition"
-        >
-          Staff & Admin Portal →
-        </Link>
       </div>
     </div>
   );

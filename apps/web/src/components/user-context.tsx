@@ -63,7 +63,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [activePlan, setActivePlan] = useState<ActiveSubscription | null>(null);
   const [taskSummary, setTaskSummary] = useState<TaskSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setThemeState] = useState<"light" | "dark">("dark");
+  const [theme, setThemeState] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     try {
@@ -71,7 +71,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (saved === "dark" || saved === "light") {
         setThemeState(saved);
       } else {
-        setThemeState("dark");
+        setThemeState("light");
       }
     } catch {
       // ignore

@@ -10,13 +10,10 @@ import {
   Users,
   Wallet,
   Sparkles,
-  Zap,
   Star,
   Sun,
   Factory,
   BatteryCharging,
-  Layers,
-  Award,
   TrendingUp,
   X,
   Building2,
@@ -100,7 +97,7 @@ const SETTLEMENT_ACTIONS = [
 const NIGERIAN_PREFIXES = ["080", "090", "081", "070", "091", "080", "081"];
 
 export default function DashboardPage() {
-  const { user, wallet, activePlan, taskSummary, loading, theme } = useUser();
+  const { theme, loading } = useUser();
   const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
   const [settlements, setSettlements] = useState<SettlementItem[]>(INITIAL_SETTLEMENTS);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -222,6 +219,7 @@ export default function DashboardPage() {
       {/* 2. Hero Banner Carousel */}
       <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-800/40 group h-56 bg-slate-950">
         {/* Background Image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={slide.image}
           alt="Solar Infrastructure"
@@ -419,6 +417,7 @@ export default function DashboardPage() {
       >
         <div className="flex items-center gap-2.5">
           <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/lucky_wheel.png"
               alt="Lucky Spin"
@@ -654,6 +653,7 @@ export default function DashboardPage() {
 
             {/* Wheel graphic */}
             <div className="relative w-36 h-36 mx-auto my-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/lucky_wheel.png"
                 alt="Roulette"
