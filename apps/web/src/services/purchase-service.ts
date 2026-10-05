@@ -1,35 +1,185 @@
 import { and, eq, sql } from "drizzle-orm";
 import {
-  investmentLots,
-  investmentPackages,
+  investmentPlans,
   investments,
   ledgerAccounts,
   ledgerEntries,
-  packageVersions,
   users,
   walletTransactions,
   wallets,
 } from "@solar/database/schema";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
-import { isPackageWithinWindow } from "@/lib/package-window";
-import { validateLotCount } from "@/lib/integrity";
-import { availableLots } from "@/services/admin-package-service";
-import { quoteInvestment } from "@/services/marketplace-service";
+import { addDurationDays } from "@/lib/plan-term";
 import { safeNotify } from "@/services/notification-service";
 
-export async function purchasePackage(input: {
-  userId: string;
-  packageId: string;
-  lotCount: number;
-  idempotencyKey?: string | null;
-}) {
-  const { userId, packageId, lotCount, idempotencyKey } = input;
+type Db = ReturnType<typeof getDb>;
+type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-  if (validateLotCount(lotCount) !== "OK") {
-    throw new AppError("VALIDATION_ERROR", "lotCount must be a positive integer.", 400);
+async function creditCommission(
+  tx: Tx,
+  userId: string,
+  amount: number,
+  investmentId: string,
+  description: string,
+) {
+  if (amount <= 0) return;
+
+  let [wallet] = await tx
+    .select()
+    .from(wallets)
+    .where(eq(wallets.userId, userId))
+    .limit(1);
+
+  if (!wallet) {
+    const [w] = await tx
+      .insert(wallets)
+      .values({ userId, currency: "NGN" })
+      .returning();
+    wallet = w!;
+    await tx.insert(ledgerAccounts).values([
+      { walletId: wallet.id, code: "AVAILABLE" },
+      { walletId: wallet.id, code: "PENDING" },
+    ]);
   }
 
+  const [availableAccount] = await tx
+    .select()
+    .from(ledgerAccounts)
+    .where(
+      and(
+        eq(ledgerAccounts.walletId, wallet.id),
+        eq(ledgerAccounts.code, "AVAILABLE"),
+      ),
+    )
+    .limit(1);
+
+  if (availableAccount) {
+    await tx.insert(ledgerEntries).values({
+      ledgerAccountId: availableAccount.id,
+      amount,
+      entryType: "REFERRAL_COMMISSION",
+      referenceType: "investment",
+      referenceId: investmentId,
+      description,
+    });
+
+    await tx.insert(walletTransactions).values({
+      walletId: wallet.id,
+      type: "COMMISSION",
+      status: "COMPLETED",
+      direction: "CREDIT",
+      amount,
+      currency: wallet.currency,
+      referenceType: "investment",
+      referenceId: investmentId,
+      description,
+    });
+  }
+}
+
+import { getSettingNumber } from "@/settings/settings";
+
+async function distributeReferralCommissions(
+  tx: Tx,
+  buyerUserId: string,
+  principal: number,
+  investmentId: string,
+  planName: string,
+) {
+  const [buyer] = await tx
+    .select({
+      id: users.id,
+      email: users.email,
+      referredByUserId: users.referredByUserId,
+    })
+    .from(users)
+    .where(eq(users.id, buyerUserId))
+    .limit(1);
+
+  if (!buyer?.referredByUserId) return;
+
+  const [rateAPercent, rateBPercent, rateCPercent] = await Promise.all([
+    getSettingNumber("referral.level_a_commission_percent", 10),
+    getSettingNumber("referral.level_b_commission_percent", 2),
+    getSettingNumber("referral.level_c_commission_percent", 1),
+  ]);
+
+  // Level A
+  const [levelAUser] = await tx
+    .select({
+      id: users.id,
+      email: users.email,
+      referredByUserId: users.referredByUserId,
+    })
+    .from(users)
+    .where(eq(users.id, buyer.referredByUserId))
+    .limit(1);
+
+  if (!levelAUser) return;
+  const commA = Math.round(principal * (rateAPercent / 100));
+  if (commA > 0) {
+    await creditCommission(
+      tx,
+      levelAUser.id,
+      commA,
+      investmentId,
+      `Level A referral commission (${rateAPercent}%) from ${buyer.email} on ${planName}`,
+    );
+  }
+
+  // Level B
+  if (!levelAUser.referredByUserId) return;
+  const [levelBUser] = await tx
+    .select({
+      id: users.id,
+      email: users.email,
+      referredByUserId: users.referredByUserId,
+    })
+    .from(users)
+    .where(eq(users.id, levelAUser.referredByUserId))
+    .limit(1);
+
+  if (!levelBUser) return;
+  const commB = Math.round(principal * (rateBPercent / 100));
+  if (commB > 0) {
+    await creditCommission(
+      tx,
+      levelBUser.id,
+      commB,
+      investmentId,
+      `Level B referral commission (${rateBPercent}%) from ${buyer.email} on ${planName}`,
+    );
+  }
+
+  // Level C
+  if (!levelBUser.referredByUserId) return;
+  const [levelCUser] = await tx
+    .select({ id: users.id, email: users.email })
+    .from(users)
+    .where(eq(users.id, levelBUser.referredByUserId))
+    .limit(1);
+
+  if (!levelCUser) return;
+  const commC = Math.round(principal * (rateCPercent / 100));
+  if (commC > 0) {
+    await creditCommission(
+      tx,
+      levelCUser.id,
+      commC,
+      investmentId,
+      `Level C referral commission (${rateCPercent}%) from ${buyer.email} on ${planName}`,
+    );
+  }
+}
+
+export async function purchasePlan(input: {
+  userId: string;
+  planId: string;
+  slotCount?: number;
+  idempotencyKey?: string | null;
+}) {
+  const { userId, planId, idempotencyKey } = input;
   const db = getDb();
 
   if (idempotencyKey) {
@@ -58,233 +208,166 @@ export async function purchasePackage(input: {
     );
   }
 
-  return db.transaction(async (tx) => {
-    if (idempotencyKey) {
-      const [existing] = await tx
+  return db
+    .transaction(async (tx) => {
+      if (idempotencyKey) {
+        const [existing] = await tx
+          .select()
+          .from(investments)
+          .where(
+            and(
+              eq(investments.userId, userId),
+              eq(investments.idempotencyKey, idempotencyKey),
+            ),
+          )
+          .limit(1);
+        if (existing) {
+          return { investment: existing, replayed: true as const };
+        }
+      }
+
+      const [plan] = await tx
         .select()
-        .from(investments)
+        .from(investmentPlans)
+        .where(eq(investmentPlans.id, planId))
+        .for("update");
+
+      if (!plan) throw new AppError("NOT_FOUND", "Plan not found.", 404);
+      if (plan.status !== "OPEN") {
+        throw new AppError("INVALID_STATE", "Plan is not open for investment.", 400);
+      }
+
+      const principal = plan.price;
+      if (!Number.isInteger(principal) || principal < 1) {
+        throw new AppError("VALIDATION_ERROR", "Plan price is invalid.", 400);
+      }
+
+      const [wallet] = await tx
+        .select()
+        .from(wallets)
+        .where(eq(wallets.userId, userId))
+        .limit(1);
+      if (!wallet) {
+        throw new AppError(
+          "INVALID_STATE",
+          "Wallet not found. Deposit funds first.",
+          400,
+        );
+      }
+
+      const [availableAccount] = await tx
+        .select()
+        .from(ledgerAccounts)
         .where(
           and(
-            eq(investments.userId, userId),
-            eq(investments.idempotencyKey, idempotencyKey),
+            eq(ledgerAccounts.walletId, wallet.id),
+            eq(ledgerAccounts.code, "AVAILABLE"),
           ),
         )
-        .limit(1);
-      if (existing) {
-        return { investment: existing, replayed: true as const };
+        .for("update");
+
+      if (!availableAccount) {
+        throw new AppError("INTERNAL_ERROR", "AVAILABLE ledger account missing.", 500);
       }
-    }
 
-    const [pkg] = await tx
-      .select()
-      .from(investmentPackages)
-      .where(eq(investmentPackages.id, packageId))
-      .for("update");
+      const [bal] = await tx
+        .select({
+          balance: sql<number>`coalesce(sum(${ledgerEntries.amount}), 0)`.mapWith(
+            Number,
+          ),
+        })
+        .from(ledgerEntries)
+        .where(eq(ledgerEntries.ledgerAccountId, availableAccount.id));
 
-    if (!pkg) throw new AppError("NOT_FOUND", "Package not found.", 404);
-    if (pkg.status !== "OPEN") {
-      throw new AppError("INVALID_STATE", "Package is not open for investment.", 400);
-    }
-    if (!isPackageWithinWindow(pkg)) {
-      throw new AppError(
-        "INVALID_STATE",
-        "Package is outside its availability window.",
-        400,
-      );
-    }
+      const balance = bal?.balance ?? 0;
+      if (balance < principal) {
+        throw new AppError(
+          "INVALID_STATE",
+          "Insufficient available wallet balance.",
+          400,
+        );
+      }
 
-    const available = availableLots(pkg);
-    const allocation = assertCanAllocateLots({
-      lotCount,
-      minimumLots: pkg.minimumLots,
-      maximumLots: pkg.maximumLots,
-      available,
-    });
-    if (allocation === "MIN") {
-      throw new AppError(
-        "VALIDATION_ERROR",
-        `Minimum lots is ${pkg.minimumLots}.`,
-        400,
-      );
-    }
-    if (allocation === "MAX") {
-      throw new AppError(
-        "VALIDATION_ERROR",
-        `Maximum lots is ${pkg.maximumLots}.`,
-        400,
-      );
-    }
-    if (allocation === "OVERSELL") {
-      throw new AppError(
-        "INVALID_STATE",
-        `Only ${available} lots available.`,
-        400,
-      );
-    }
+      const startAt = new Date();
+      const durationDays = Math.max(1, plan.durationDays);
+      const maturityAt = addDurationDays(startAt, durationDays);
+      const termRoi = plan.dailyRoi;
 
-    let version: typeof packageVersions.$inferSelect | null = null;
-    if (pkg.currentVersionId) {
-      const [v] = await tx
-        .select()
-        .from(packageVersions)
-        .where(eq(packageVersions.id, pkg.currentVersionId))
-        .limit(1);
-      version = v ?? null;
-    }
-    if (!version) {
-      throw new AppError(
-        "INVALID_STATE",
-        "Package has no published version terms.",
-        400,
-      );
-    }
+      const [investment] = await tx
+        .insert(investments)
+        .values({
+          userId,
+          planId,
+          planVersionId: null,
+          principal,
+          dailyRoi: termRoi,
+          lastRoiOn: null,
+          slotCount: 1,
+          startAt,
+          maturityAt,
+          returnType: "TERM_ROI",
+          returnRate: String(termRoi),
+          status: "ACTIVE",
+          idempotencyKey: idempotencyKey ?? null,
+        })
+        .returning();
 
-    const lotPrice = version.lotPrice;
-    const quote = quoteInvestment({
-      lotCount,
-      lotPrice,
-      returnRate: version.returnRate,
-      durationDays: version.durationDays,
-    });
-    const principal = Math.round(quote.principal);
-    if (principal < 1) {
-      throw new AppError("VALIDATION_ERROR", "Principal must be at least 1.", 400);
-    }
-
-    const [wallet] = await tx
-      .select()
-      .from(wallets)
-      .where(eq(wallets.userId, userId))
-      .limit(1);
-    if (!wallet) {
-      throw new AppError(
-        "INVALID_STATE",
-        "Wallet not found. Deposit funds first.",
-        400,
-      );
-    }
-
-    const [availableAccount] = await tx
-      .select()
-      .from(ledgerAccounts)
-      .where(
-        and(
-          eq(ledgerAccounts.walletId, wallet.id),
-          eq(ledgerAccounts.code, "AVAILABLE"),
-        ),
-      )
-      .for("update");
-
-    if (!availableAccount) {
-      throw new AppError("INTERNAL_ERROR", "AVAILABLE ledger account missing.", 500);
-    }
-
-    const [bal] = await tx
-      .select({
-        balance: sql<number>`coalesce(sum(${ledgerEntries.amount}), 0)`.mapWith(
-          Number,
-        ),
-      })
-      .from(ledgerEntries)
-      .where(eq(ledgerEntries.ledgerAccountId, availableAccount.id));
-
-    const balance = bal?.balance ?? 0;
-    if (balance < principal) {
-      throw new AppError(
-        "INVALID_STATE",
-        "Insufficient available wallet balance.",
-        400,
-      );
-    }
-
-    const startAt = new Date(quote.startAt);
-    const maturityAt = new Date(quote.maturityAt);
-
-    const [investment] = await tx
-      .insert(investments)
-      .values({
-        userId,
-        packageId,
-        packageVersionId: version.id,
-        principal,
-        lotCount,
-        startAt,
-        maturityAt,
-        returnType: version.returnType,
-        returnRate: version.returnRate,
-        status: "ACTIVE",
-        idempotencyKey: idempotencyKey ?? null,
-      })
-      .returning();
-
-    await tx.insert(investmentLots).values({
-      investmentId: investment!.id,
-      packageId,
-      lotCount,
-      pricePerLot: lotPrice,
-      totalAmount: principal,
-    });
-
-    const newSold = pkg.soldLots + lotCount;
-    const newAvailable = pkg.totalLots - pkg.reservedLots - newSold;
-    const nextStatus = newAvailable <= 0 ? "FULL" : pkg.status;
-
-    await tx
-      .update(investmentPackages)
-      .set({
-        soldLots: newSold,
-        status: nextStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(investmentPackages.id, packageId));
-
-    await tx.insert(ledgerEntries).values({
-      ledgerAccountId: availableAccount.id,
-      amount: -principal,
-      entryType: "INVESTMENT_DEBIT",
-      referenceType: "investment",
-      referenceId: investment!.id,
-      description: `Investment purchase ${investment!.id}`,
-    });
-
-    await tx.insert(walletTransactions).values({
-      walletId: wallet.id,
-      type: "INVESTMENT",
-      status: "COMPLETED",
-      direction: "DEBIT",
-      amount: principal,
-      currency: wallet.currency,
-      referenceType: "investment",
-      referenceId: investment!.id,
-      description: `Investment purchase ${investment!.id}`,
-    });
-
-    return { investment: investment!, replayed: false as const };
-  }).then(async (result) => {
-    if (!result.replayed) {
-      await safeNotify({
-        userId,
-        code: "INVESTMENT_CREATED",
-        vars: {
-          amount: result.investment.principal,
-          packageName: packageId,
-        },
-        data: { investmentId: result.investment.id, packageId },
+      await tx.insert(ledgerEntries).values({
+        ledgerAccountId: availableAccount.id,
+        amount: -principal,
+        entryType: "INVESTMENT_DEBIT",
+        referenceType: "investment",
+        referenceId: investment!.id,
+        description: `Investment ${plan.name}`,
       });
-    }
-    return result;
-  });
+
+      await tx.insert(walletTransactions).values({
+        walletId: wallet.id,
+        type: "INVESTMENT",
+        status: "COMPLETED",
+        direction: "DEBIT",
+        amount: principal,
+        currency: wallet.currency,
+        referenceType: "investment",
+        referenceId: investment!.id,
+        description: `Investment ${plan.name}`,
+      });
+
+      await distributeReferralCommissions(
+        tx,
+        userId,
+        principal,
+        investment!.id,
+        plan.name,
+      );
+
+      return { investment: investment!, replayed: false as const };
+    })
+    .then(async (result) => {
+      if (!result.replayed) {
+        await safeNotify({
+          userId,
+          code: "INVESTMENT_CREATED",
+          vars: {
+            amount: result.investment.principal,
+            planName: planId,
+          },
+          data: { investmentId: result.investment.id, planId },
+        });
+      }
+      return result;
+    });
 }
 
 /** Pure helper for tests */
-export function assertCanAllocateLots(input: {
-  lotCount: number;
-  minimumLots: number;
-  maximumLots: number | null;
+export function assertCanAllocateSlots(input: {
+  slotCount: number;
+  minimumSlots: number;
+  maximumSlots: number | null;
   available: number;
 }) {
-  if (input.lotCount < input.minimumLots) return "MIN";
-  if (input.maximumLots != null && input.lotCount > input.maximumLots) return "MAX";
-  if (input.lotCount > input.available) return "OVERSELL";
+  if (input.slotCount < input.minimumSlots) return "MIN";
+  if (input.maximumSlots != null && input.slotCount > input.maximumSlots) return "MAX";
+  if (input.slotCount > input.available) return "OVERSELL";
   return "OK";
 }

@@ -25,8 +25,8 @@ export function idempotencyDecision(existing: unknown | null | undefined): {
 }
 
 /** Positive integer lot counts only. */
-export function validateLotCount(lotCount: number): "OK" | "INVALID_LOT_COUNT" {
-  if (!Number.isInteger(lotCount) || lotCount < 1) return "INVALID_LOT_COUNT";
+export function validateSlotCount(slotCount: number): "OK" | "INVALID_SLOT_COUNT" {
+  if (!Number.isInteger(slotCount) || slotCount < 1) return "INVALID_SLOT_COUNT";
   return "OK";
 }
 

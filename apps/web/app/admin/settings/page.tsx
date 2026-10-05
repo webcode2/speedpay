@@ -14,10 +14,10 @@ type Item = { key: string; value: string; group: string };
 
 const GROUP_LABELS: Record<string, string> = {
   app: "App",
-  investment: "Investment",
+  investment: "Packages",
+  referral: "Referral Commissions (%)",
   deposit: "Deposit",
   withdrawal: "Withdrawal",
-  returns: "Returns",
   security: "Security",
   notification: "Notification",
 };
@@ -25,9 +25,9 @@ const GROUP_LABELS: Record<string, string> = {
 const GROUP_ORDER = [
   "app",
   "investment",
+  "referral",
   "deposit",
   "withdrawal",
-  "returns",
   "security",
   "notification",
 ];
@@ -131,6 +131,83 @@ export default function AdminSettingsPage() {
       {message ? (
         <p className="mb-3 text-[var(--sp-lime-deep)]">{message}</p>
       ) : null}
+
+      {/* Withdrawal Gateway Switch Card */}
+      {canUpdate && (
+        <div className="mb-6 rounded-2xl border-2 border-[var(--sp-border)] bg-white p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-base font-bold text-[var(--sp-navy)]">
+                  Withdrawal Gateway Switch
+                </h3>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide ${
+                    items.find((i) => i.key === "withdrawal.enabled")?.value === "false"
+                      ? "bg-amber-100 text-amber-800 border border-amber-300"
+                      : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                  }`}
+                >
+                  {items.find((i) => i.key === "withdrawal.enabled")?.value === "false"
+                    ? "DISABLED (Server Overload Mode)"
+                    : "ACTIVE (Normal Operations)"}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--sp-muted)]">
+                {items.find((i) => i.key === "withdrawal.enabled")?.value === "false"
+                  ? "Withdrawals are currently disabled. Users attempting to withdraw will see: \"Server overload wait for a few moment\"."
+                  : "Withdrawals are currently active. Verified users can request payouts according to standard platform limits."}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={async () => {
+                const current = items.find((i) => i.key === "withdrawal.enabled")?.value ?? "true";
+                const nextVal = current === "false" ? "true" : "false";
+                setLoading(true);
+                setError(null);
+                setMessage(null);
+                try {
+                  const res = await fetch("/api/admin/settings", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      updates: { "withdrawal.enabled": nextVal },
+                    }),
+                  });
+                  const json = await res.json();
+                  if (!json.success) {
+                    setError(json.error?.message ?? "Failed to toggle withdrawal status.");
+                    return;
+                  }
+                  setMessage(
+                    nextVal === "true"
+                      ? "Withdrawals are now ACTIVE."
+                      : "Withdrawals are now DISABLED (Server overload mode).",
+                  );
+                  await load();
+                } catch {
+                  setError("Network error toggling withdrawal status.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-sm whitespace-nowrap ${
+                items.find((i) => i.key === "withdrawal.enabled")?.value === "false"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-amber-600 hover:bg-amber-700 text-white"
+              }`}
+            >
+              {items.find((i) => i.key === "withdrawal.enabled")?.value === "false"
+                ? "✓ Enable Withdrawals (Set Active)"
+                : "⛔ Disable Withdrawals (Set Server Overload)"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         {groups.map(([group, list]) => {
           const editing = editingGroup === group;
@@ -157,16 +234,32 @@ export default function AdminSettingsPage() {
                       <span className="font-mono text-xs font-semibold text-[var(--sp-lime-deep)]">
                         {item.key}
                       </span>
-                      <AdminInput
-                        className="mt-1 w-full"
-                        value={draft[item.key] ?? ""}
-                        onChange={(e) =>
-                          setDraft((d) => ({
-                            ...d,
-                            [item.key]: e.target.value,
-                          }))
-                        }
-                      />
+                      {item.key.endsWith(".enabled") ? (
+                        <select
+                          className="mt-1 w-full rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] focus:outline-none focus:ring-2 focus:ring-[var(--sp-lime-deep)]"
+                          value={draft[item.key] ?? "true"}
+                          onChange={(e) =>
+                            setDraft((d) => ({
+                              ...d,
+                              [item.key]: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="true">true (Active / Enabled)</option>
+                          <option value="false">false (Disabled / Inactive)</option>
+                        </select>
+                      ) : (
+                        <AdminInput
+                          className="mt-1 w-full"
+                          value={draft[item.key] ?? ""}
+                          onChange={(e) =>
+                            setDraft((d) => ({
+                              ...d,
+                              [item.key]: e.target.value,
+                            }))
+                          }
+                        />
+                      )}
                     </label>
                   ) : (
                     <div key={item.key} className="flex flex-col gap-0.5">
@@ -174,7 +267,19 @@ export default function AdminSettingsPage() {
                         {item.key}
                       </span>
                       <span className="text-sm font-medium text-[var(--sp-navy)]">
-                        {item.value}
+                        {item.key.endsWith(".enabled") ? (
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                              item.value === "true"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {item.value === "true" ? "ACTIVE (true)" : "DISABLED (false)"}
+                          </span>
+                        ) : (
+                          item.value
+                        )}
                       </span>
                     </div>
                   ),

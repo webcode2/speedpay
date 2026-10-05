@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const token = await getAdminBearerOrCookieToken(request);
     if (!token) throw new AppError("UNAUTHORIZED", "Authentication required.", 401);
     const admin = await getCurrentAdmin(token);
-    const status = new URL(request.url).searchParams.get("status") ?? "PENDING";
+    const status = new URL(request.url).searchParams.get("status") ?? undefined;
     const items = await listAdminWithdrawals({ adminId: admin.id, status });
     return apiSuccess({ items });
   } catch (error) {

@@ -1,7 +1,9 @@
-import { and, desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import {
+  investmentPlans,
   investments,
   payoutAccounts,
+  taskCompletions,
   userProfiles,
   users,
   verificationRequests,
@@ -10,6 +12,15 @@ import type { AuditMeta } from "@/audit/write-admin-audit";
 import { writeAdminAudit } from "@/audit/write-admin-audit";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import {
+  accountReferralStatus,
+  referrerStatus,
+} from "@/lib/referral";
+import {
+  remainingTasks,
+  resolveTaskAllowance,
+  utcTaskDate,
+} from "@/lib/task-allowance";
 import {
   adminHasPermission,
   requireAdminPermission,
@@ -60,7 +71,31 @@ export async function listAdminUsers(input: {
     .from(users)
     .where(where);
 
-  return { items: rows, total: countRow?.n ?? 0, limit, offset };
+  const ids = rows.map((r) => r.id);
+  const referredCounts =
+    ids.length === 0
+      ? []
+      : await db
+          .select({
+            referrerId: users.referredByUserId,
+            n: sql<number>`count(*)`.mapWith(Number),
+          })
+          .from(users)
+          .where(inArray(users.referredByUserId, ids))
+          .groupBy(users.referredByUserId);
+  const countMap = new Map(
+    referredCounts.map((r) => [r.referrerId, r.n] as const),
+  );
+
+  return {
+    items: rows.map((r) => ({
+      ...r,
+      referredCount: countMap.get(r.id) ?? 0,
+    })),
+    total: countRow?.n ?? 0,
+    limit,
+    offset,
+  };
 }
 
 export async function getAdminUser(adminId: string, userId: string) {
@@ -77,10 +112,46 @@ export async function getAdminUser(adminId: string, userId: string) {
     .limit(1);
   if (!row) throw new AppError("NOT_FOUND", "User not found.", 404);
 
-  const [invCount] = await db
-    .select({ n: sql<number>`count(*)`.mapWith(Number) })
+  const today = utcTaskDate();
+  const subRows = await db
+    .select({
+      inv: investments,
+      planName: investmentPlans.name,
+      planKind: investmentPlans.kind,
+      dailyTaskLimit: investmentPlans.dailyTaskLimit,
+      taskReward: investmentPlans.taskReward,
+    })
     .from(investments)
-    .where(eq(investments.userId, userId));
+    .innerJoin(investmentPlans, eq(investments.planId, investmentPlans.id))
+    .where(eq(investments.userId, userId))
+    .orderBy(desc(investments.createdAt));
+
+  const [taskRow] = await db
+    .select({
+      lifetime: sql<number>`count(*)`.mapWith(Number),
+      lifetimeEarned: sql<number>`coalesce(sum(${taskCompletions.rewardAmount}), 0)`.mapWith(
+        Number,
+      ),
+      completedToday: sql<number>`count(*) filter (where ${taskCompletions.taskDate} = ${today})`.mapWith(
+        Number,
+      ),
+      earnedToday: sql<number>`coalesce(sum(${taskCompletions.rewardAmount}) filter (where ${taskCompletions.taskDate} = ${today}), 0)`.mapWith(
+        Number,
+      ),
+    })
+    .from(taskCompletions)
+    .where(eq(taskCompletions.userId, userId));
+
+  const allowance = resolveTaskAllowance(
+    subRows
+      .filter((r) => r.inv.status === "ACTIVE")
+      .map((r) => ({
+        dailyTaskLimit: Number(r.dailyTaskLimit) || 0,
+        taskReward: Number(r.taskReward) || 0,
+      })),
+  );
+  const completedToday = taskRow?.completedToday ?? 0;
+
   const [kyc] = await db
     .select()
     .from(verificationRequests)
@@ -92,15 +163,104 @@ export async function getAdminUser(adminId: string, userId: string) {
     .from(payoutAccounts)
     .where(eq(payoutAccounts.userId, userId));
 
-  return {
+  const payload = {
     ...row.user,
     profile: row.profile,
-    investmentCount: invCount?.n ?? 0,
+    investmentCount: subRows.length,
     payoutAccountCount: payoutCount?.n ?? 0,
     latestKyc: kyc
       ? { id: kyc.id, status: kyc.status, submittedAt: kyc.submittedAt }
       : null,
+    investments: subRows.map((r) => {
+      return {
+        id: r.inv.id,
+        planId: r.inv.planId,
+        planName: r.planName,
+        planKind: r.planKind,
+        status: r.inv.status,
+        principal: r.inv.principal,
+        termRoi: r.inv.dailyRoi,
+        dailyRoi: r.inv.dailyRoi,
+        lastRoiOn: r.inv.lastRoiOn,
+        dailyTaskLimit: r.dailyTaskLimit,
+        startAt: r.inv.startAt,
+        maturityAt: r.inv.maturityAt,
+        taskReward: r.taskReward,
+      };
+    }),
+    tasks: {
+      eligible: allowance.eligible,
+      dailyLimit: allowance.dailyLimit,
+      completedToday,
+      remainingToday: remainingTasks(allowance.dailyLimit, completedToday),
+      earnedToday: taskRow?.earnedToday ?? 0,
+      lifetime: taskRow?.lifetime ?? 0,
+      lifetimeEarned: taskRow?.lifetimeEarned ?? 0,
+    },
+    referralCode: row.user.referralCode,
+    referredBy: null as { id: string; email: string } | null,
+    referringStatus: "NONE" as "NONE" | "GROWING" | "ACTIVE",
+    referrals: [] as {
+      id: string;
+      email: string;
+      accountStatus: string;
+      createdAt: Date;
+    }[],
   };
+
+  if (row.user.referredByUserId) {
+    const [ref] = await db
+      .select({ id: users.id, email: users.email })
+      .from(users)
+      .where(eq(users.id, row.user.referredByUserId))
+      .limit(1);
+    payload.referredBy = ref ?? null;
+  }
+
+  const downline = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      status: users.status,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.referredByUserId, userId))
+    .orderBy(desc(users.createdAt));
+
+  const subIds = new Set<string>();
+  if (downline.length > 0) {
+    const active = await db
+      .select({ userId: investments.userId })
+      .from(investments)
+      .where(
+        and(
+          inArray(
+            investments.userId,
+            downline.map((d) => d.id),
+          ),
+          eq(investments.status, "ACTIVE"),
+        ),
+      );
+    for (const a of active) subIds.add(a.userId);
+  }
+
+  payload.referrals = downline.map((d) => ({
+    id: d.id,
+    email: d.email,
+    accountStatus: accountReferralStatus({
+      userStatus: d.status,
+      hasActiveInvestment: subIds.has(d.id),
+    }),
+    createdAt: d.createdAt,
+  }));
+  payload.referringStatus = referrerStatus(
+    payload.referrals.map((r) => ({
+      status: r.accountStatus as "REGISTERED" | "SUBSCRIBED" | "SUSPENDED" | "CLOSED",
+    })),
+  );
+
+  return payload;
 }
 
 export async function setAdminUserStatus(

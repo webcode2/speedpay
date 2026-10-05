@@ -4,6 +4,7 @@ import { resolveSession } from "@/auth/session";
 import { AppError } from "@/lib/app-error";
 import {
   createWithdrawal,
+  isWithdrawalEnabled,
   listWithdrawals,
 } from "@/services/withdrawal-service";
 
@@ -18,7 +19,11 @@ async function requireUser(request: Request) {
 export async function GET(request: Request) {
   try {
     const user = await requireUser(request);
-    return apiSuccess({ items: await listWithdrawals(user.id) });
+    const [items, withdrawalsEnabled] = await Promise.all([
+      listWithdrawals(user.id),
+      isWithdrawalEnabled(),
+    ]);
+    return apiSuccess({ items, withdrawalsEnabled });
   } catch (error) {
     return handleRouteError(error);
   }

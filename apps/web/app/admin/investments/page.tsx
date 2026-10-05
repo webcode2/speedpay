@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { formatAmount } from "@/lib/money";
 import {
   AdminCard,
@@ -14,22 +14,34 @@ import {
 
 type Item = {
   id: string;
+  userId: string;
   status: string;
   principal: number;
-  lotCount: number;
   userEmail: string;
-  packageName: string;
-  projectName: string;
+  planName: string;
+  planKind: string;
+  dailyRoi: number;
+  termRoi?: number;
+  taskReward?: number;
+  dailyTaskLimit: number;
+  tasksCompletedToday: number;
+  tasksRemainingToday: number;
+  tasksLifetime: number;
   startAt: string;
   maturityAt: string;
 };
 
-export default function AdminInvestmentsPage() {
+type Totals = {
+  subscriptions: number;
+  uniqueUsers: number;
+  active: number;
+};
+
+export default function AdminSubscribersPage() {
   const [items, setItems] = useState<Item[]>([]);
+  const [totals, setTotals] = useState<Totals | null>(null);
   const [status, setStatus] = useState("");
-  const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"cards" | "table">("cards");
 
   async function load(next = status) {
     const params = new URLSearchParams({ limit: "100" });
@@ -41,7 +53,7 @@ export default function AdminInvestmentsPage() {
       return;
     }
     setItems(json.data.items);
-    setTotal(json.data.total);
+    setTotals(json.data.totals ?? null);
     setError(null);
   }
 
@@ -50,154 +62,120 @@ export default function AdminInvestmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const packageCards = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        packageName: string;
-        projectName: string;
-        subscribers: Item[];
-        principal: number;
-      }
-    >();
-    for (const row of items) {
-      const key = `${row.packageName}::${row.projectName}`;
-      const cur = map.get(key) ?? {
-        packageName: row.packageName,
-        projectName: row.projectName,
-        subscribers: [],
-        principal: 0,
-      };
-      cur.subscribers.push(row);
-      cur.principal += Number(row.principal) || 0;
-      map.set(key, cur);
-    }
-    return [...map.values()];
-  }, [items]);
-
   return (
-    <div className="w-full">
+    <div className="flex w-full flex-col gap-6">
       <AdminPageHeader
-        title="Investments"
-        subtitle={`${total} positions`}
+        title="Subscribers"
+        subtitle="Active user subscriptions, package validity, and daily task progress"
         actions={
-          <>
-            <AdminSelect
-              value={status}
-              onChange={(v) => {
-                setStatus(v);
-                void load(v);
-              }}
-            >
-              <option value="">All statuses</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="MATURED">MATURED</option>
-              <option value="REINVESTED">REINVESTED</option>
-              <option value="COMPLETED">COMPLETED</option>
-            </AdminSelect>
-            <div className="flex rounded-xl bg-[var(--sp-surface)] p-1 ring-1 ring-[var(--sp-border)]">
-              {(["cards", "table"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setView(mode)}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize ${
-                    view === mode
-                      ? "bg-[var(--sp-navy)] text-white"
-                      : "text-[var(--sp-muted)]"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </>
+          <AdminSelect
+            value={status}
+            onChange={(value) => {
+              setStatus(value);
+              void load(value);
+            }}
+          >
+            <option value="">All statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="EXPIRED">Expired</option>
+          </AdminSelect>
         }
       />
-      {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
+      {error ? <p className="text-[var(--sp-danger)]">{error}</p> : null}
 
-      {view === "cards" ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {packageCards.map((pkg) => (
-            <AdminCard key={`${pkg.packageName}-${pkg.projectName}`}>
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--sp-navy)]">
-                    {pkg.packageName}
-                  </h2>
-                  <p className="text-sm text-[var(--sp-muted)]">
-                    {pkg.projectName} · {pkg.subscribers.length} subscriber
-                    {pkg.subscribers.length === 1 ? "" : "s"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-[var(--sp-lime-mint)] px-3 py-2 text-right">
-                  <p className="text-[11px] text-[var(--sp-lime-deep)]">
-                    Total principal
-                  </p>
-                  <p className="font-bold text-[var(--sp-navy)]">
-                    {formatAmount(pkg.principal)}
-                  </p>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {pkg.subscribers.map((s) => (
-                  <li
-                    key={s.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--sp-border)] px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <Link
-                        href={`/admin/investments/${s.id}`}
-                        className="truncate font-medium text-[var(--sp-navy)] hover:text-[var(--sp-lime-deep)]"
-                      >
-                        {s.userEmail}
-                      </Link>
-                      <p className="text-xs text-[var(--sp-muted)]">
-                        {formatAmount(s.principal)} · {s.lotCount} lots
-                      </p>
-                    </div>
-                    <StatusPill status={s.status} />
-                  </li>
-                ))}
-              </ul>
-            </AdminCard>
+      <AdminCard className="!p-0 overflow-hidden">
+        <div className="grid grid-cols-3 divide-x divide-[var(--sp-border)]">
+          {[
+            {
+              title: "Subscriptions",
+              value: totals?.subscriptions ?? items.length,
+              note: "All package purchases",
+            },
+            {
+              title: "People",
+              value: totals?.uniqueUsers ?? 0,
+              note: "Unique subscribers",
+            },
+            {
+              title: "Active now",
+              value: totals?.active ?? 0,
+              note: "Active task earners",
+            },
+          ].map((card) => (
+            <div key={card.title} className="px-5 py-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--sp-muted)]">
+                {card.title}
+              </p>
+              <p className="mt-2 text-3xl font-bold text-[var(--sp-navy)]">
+                {card.value}
+              </p>
+              <p className="mt-1 text-xs text-[var(--sp-muted)]">{card.note}</p>
+            </div>
           ))}
-          {packageCards.length === 0 ? (
-            <p className="text-sm text-[var(--sp-muted)]">No investments.</p>
-          ) : null}
         </div>
-      ) : (
+      </AdminCard>
+
+      <div>
+        <h2 className="mb-3 text-base font-bold text-[var(--sp-navy)]">
+          Each subscriber
+        </h2>
         <AdminTable
           columns={[
-            "Investor",
+            "User",
             "Package",
-            "Principal",
-            "Lots",
+            "Validity",
+            "Tasks today",
+            "Balance",
+            "Lifetime",
             "Status",
             "",
           ]}
-          empty={items.length === 0 ? "No investments." : undefined}
+          empty={items.length === 0 ? "No subscribers yet." : undefined}
         >
-          {items.map((item) => (
-            <tr key={item.id} className="hover:bg-[var(--sp-surface)]/70">
-              <td className="px-4 py-3 font-medium text-[var(--sp-navy)]">
-                {item.userEmail}
-              </td>
-              <td className="px-4 py-3 text-[var(--sp-muted)]">
-                {item.packageName}
-              </td>
-              <td className="px-4 py-3">{formatAmount(item.principal)}</td>
-              <td className="px-4 py-3">{item.lotCount}</td>
+          {items.map((row) => (
+            <tr key={row.id} className="hover:bg-[var(--sp-surface)]/70">
               <td className="px-4 py-3">
-                <StatusPill status={item.status} />
+                <Link
+                  href={`/admin/users/${row.userId}`}
+                  className="font-medium text-[var(--sp-navy)] hover:underline"
+                >
+                  {row.userEmail}
+                </Link>
+              </td>
+              <td className="px-4 py-3">
+                <div className="font-medium text-[var(--sp-navy)]">
+                  {row.planName}
+                </div>
+                <div className="text-xs text-[var(--sp-muted)]">
+                  ₦{formatAmount(row.principal)}
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="font-medium text-[var(--sp-navy)]">
+                  Expires {new Date(row.maturityAt).toISOString().slice(0, 10)}
+                </div>
+                <div className="text-xs text-[var(--sp-muted)]">
+                  Started {new Date(row.startAt).toISOString().slice(0, 10)}
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                {row.tasksCompletedToday}/{row.dailyTaskLimit}
+                {row.taskReward
+                  ? ` · ₦${formatAmount(row.taskReward)}/task`
+                  : ""}
+              </td>
+              <td className="px-4 py-3">{row.tasksRemainingToday} left</td>
+              <td className="px-4 py-3">{row.tasksLifetime}</td>
+              <td className="px-4 py-3">
+                <StatusPill status={row.status} />
               </td>
               <td className="px-4 py-3 text-right">
-                <RowLink href={`/admin/investments/${item.id}`}>Open</RowLink>
+                <RowLink href={`/admin/users/${row.userId}`}>Open</RowLink>
               </td>
             </tr>
           ))}
         </AdminTable>
-      )}
+      </div>
     </div>
   );
 }

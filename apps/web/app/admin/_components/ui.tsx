@@ -36,7 +36,7 @@ export function AdminCard({
 }) {
   return (
     <section
-      className={`rounded-3xl border border-[var(--sp-border)] bg-white p-5 shadow-sm ${className}`}
+      className={`border border-[var(--sp-border)] bg-white p-5 shadow-sm ${className}`}
     >
       {children}
     </section>
@@ -58,10 +58,11 @@ export function StatusPill({ status }: { status: string }) {
       "KYC_APPROVED",
       "ELIGIBLE",
       "PUBLISHED",
+      "SUBSCRIBED",
     ].includes(s)
   ) {
     cls = "bg-[var(--sp-lime-mint)] text-[var(--sp-lime-deep)]";
-  } else if (["PENDING", "PROCESSING", "UNDER_REVIEW", "PAUSED", "DRAFT"].includes(s)) {
+  } else if (["PENDING", "PROCESSING", "UNDER_REVIEW", "PAUSED", "DRAFT", "GROWING", "REGISTERED"].includes(s)) {
     cls = "bg-amber-50 text-amber-700";
   } else if (
     ["FAILED", "REJECTED", "CANCELLED", "SUSPENDED", "CLOSED", "ARCHIVED", "FULL"].includes(
@@ -137,25 +138,34 @@ export function AdminInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] outline-none ring-[var(--sp-lime)] placeholder:text-[var(--sp-muted)] focus:ring-2 ${props.className ?? ""}`}
+      className={`w-full min-w-0 rounded-xl border border-[var(--sp-border)] bg-white px-3 py-2 text-sm text-[var(--sp-navy)] outline-none ring-[var(--sp-lime)] placeholder:text-[var(--sp-muted)] focus:ring-2 ${props.className ?? ""}`}
     />
   );
 }
 
+const primaryBtnClass =
+  "rounded-xl bg-[var(--sp-navy)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--sp-navy-soft)]";
+
 export function AdminPrimaryButton({
   href,
+  onClick,
   children,
 }: {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   children: ReactNode;
 }) {
+  if (href) {
+    return (
+      <Link href={href} className={primaryBtnClass}>
+        {children}
+      </Link>
+    );
+  }
   return (
-    <Link
-      href={href}
-      className="rounded-xl bg-[var(--sp-navy)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--sp-navy-soft)]"
-    >
+    <button type="button" onClick={onClick} className={primaryBtnClass}>
       {children}
-    </Link>
+    </button>
   );
 }
 

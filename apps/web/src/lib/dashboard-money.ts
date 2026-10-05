@@ -1,11 +1,10 @@
-import { calculateInvestmentReturn } from "@/calculations/investment-return";
-
 export type ActiveInvestmentMoneyInput = {
   principal: number;
-  returnRate: string;
-  returnType: string;
-  startAt: Date;
-  maturityAt: Date;
+  returnRate?: string;
+  returnType?: string;
+  termRoi?: number;
+  startAt?: Date;
+  maturityAt?: Date;
 };
 
 export type DashboardMoney = {
@@ -28,27 +27,7 @@ export function sumExpectedMaturityValue(
 ): number {
   let total = 0;
   for (const row of rows) {
-    if (
-      !(row.startAt instanceof Date) ||
-      Number.isNaN(row.startAt.getTime()) ||
-      !(row.maturityAt instanceof Date) ||
-      Number.isNaN(row.maturityAt.getTime()) ||
-      row.maturityAt.getTime() < row.startAt.getTime()
-    ) {
-      continue;
-    }
-    try {
-      const calc = calculateInvestmentReturn({
-        principal: row.principal,
-        returnRate: row.returnRate,
-        returnType: row.returnType,
-        startAt: row.startAt,
-        maturityAt: row.maturityAt,
-      });
-      total += calc.maturityValue;
-    } catch {
-      // Skip rows that fail rate/type validation.
-    }
+    total += Number(row.principal) || 0;
   }
   return roundMoney(total);
 }

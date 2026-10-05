@@ -5,6 +5,8 @@ import { AppError } from "@/lib/app-error";
 import {
   changeWithdrawalPin,
   getPinStatus,
+  requestPinResetOtp,
+  resetWithdrawalPinWithOtp,
   setWithdrawalPin,
 } from "@/services/withdrawal-pin-service";
 
@@ -33,7 +35,32 @@ export async function POST(request: Request) {
       currentPin?: string;
       newPin?: string;
       action?: string;
+      password?: string;
+      otp?: string;
     };
+
+    if (body.action === "request-reset") {
+      return apiSuccess(await requestPinResetOtp(user.id));
+    }
+
+    if (body.action === "reset") {
+      if (!body.password || !body.otp || !body.newPin) {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          "Account password, email OTP, and new PIN are required.",
+          400,
+        );
+      }
+      return apiSuccess(
+        await resetWithdrawalPinWithOtp({
+          userId: user.id,
+          password: body.password,
+          otp: body.otp,
+          newPin: body.newPin,
+        }),
+      );
+    }
+
     if (body.action === "change") {
       if (!body.currentPin || !body.newPin) {
         throw new AppError(
@@ -46,6 +73,7 @@ export async function POST(request: Request) {
         await changeWithdrawalPin(user.id, body.currentPin, body.newPin),
       );
     }
+
     if (!body.pin) {
       throw new AppError("VALIDATION_ERROR", "pin is required.", 400);
     }
@@ -54,3 +82,4 @@ export async function POST(request: Request) {
     return handleRouteError(error);
   }
 }
+

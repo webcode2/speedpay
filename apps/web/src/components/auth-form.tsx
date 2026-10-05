@@ -101,6 +101,10 @@ export function AuthForm({ mode }: AuthFormProps) {
             <Link className="text-emerald-400" href="/forgot-password">
               Forgot password
             </Link>
+            <br />
+            <Link className="text-emerald-400" href="/admin/login">
+              Staff admin login →
+            </Link>
           </>
         ) : (
           <>

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { userProfiles, users } from "@solar/database/schema";
 import { hashPassword, verifyPassword } from "@/auth/password";
@@ -14,6 +15,10 @@ import {
 } from "@/auth/session";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
+import {
+  normalizeInviteCode,
+  referralCodeFromId,
+} from "@/lib/referral";
 import { safeNotify } from "@/services/notification-service";
 import { getSettingNumber } from "@/settings/settings";
 
@@ -34,7 +39,12 @@ async function assertPasswordPolicy(password: string) {
 }
 
 export async function registerUser(
-  input: { email: string; password: string; phone?: string | null },
+  input: {
+    email: string;
+    password: string;
+    phone?: string | null;
+    inviteCode?: string | null;
+  },
   meta: Meta = {},
 ) {
   await assertPasswordPolicy(input.password);
@@ -49,16 +59,34 @@ export async function registerUser(
     throw new AppError("EMAIL_TAKEN", "An account with this email already exists.", 409);
   }
 
+  const invite = normalizeInviteCode(input.inviteCode);
+  let referredByUserId: string | null = null;
+  if (invite) {
+    const [referrer] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.referralCode, invite))
+      .limit(1);
+    if (!referrer) {
+      throw new AppError("VALIDATION_ERROR", "Invite code is not valid.", 400);
+    }
+    referredByUserId = referrer.id;
+  }
+
   const passwordHash = await hashPassword(input.password);
+  const id = randomUUID();
 
   const result = await db.transaction(async (tx) => {
     const [user] = await tx
       .insert(users)
       .values({
+        id,
         email: input.email,
         phone: input.phone || null,
         passwordHash,
         status: "EMAIL_UNVERIFIED",
+        referralCode: referralCodeFromId(id),
+        referredByUserId,
       })
       .returning();
 

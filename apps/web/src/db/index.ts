@@ -1,7 +1,12 @@
+import net from "node:net";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@solar/database/schema";
 import { getEnv } from "@/env";
+
+if (net.setDefaultAutoSelectFamily) {
+  net.setDefaultAutoSelectFamily(false);
+}
 
 type Db = PostgresJsDatabase<typeof schema>;
 

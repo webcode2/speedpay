@@ -8,13 +8,12 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, { params }: Params) {
   try {
+    const { id } = await params;
     const token = await getAdminBearerOrCookieToken(request);
     if (!token) throw new AppError("UNAUTHORIZED", "Authentication required.", 401);
     const admin = await getCurrentAdmin(token);
-    const { id } = await params;
-    return apiSuccess({
-      withdrawal: await approveWithdrawal(admin.id, id, requestMeta(request)),
-    });
+    const updated = await approveWithdrawal(admin.id, id, requestMeta(request));
+    return apiSuccess({ withdrawal: updated });
   } catch (error) {
     return handleRouteError(error);
   }

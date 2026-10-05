@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
 
   return (
     <main className="admin-app flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--sp-border)] bg-white p-8 shadow-sm">
+      <div className="w-full max-w-md border border-[var(--sp-border)] bg-white p-8 shadow-sm">
         <div className="mb-6 flex items-center gap-3">
           <Image
             src="/logo-light.jpeg"

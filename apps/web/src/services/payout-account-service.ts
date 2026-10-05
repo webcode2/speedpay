@@ -70,10 +70,10 @@ export async function createPayoutAccount(
   const db = getDb();
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!user) throw new AppError("NOT_FOUND", "User not found.", 404);
-  if (user.status !== "KYC_APPROVED") {
+  if (user.status === "SUSPENDED" || user.status === "BANNED") {
     throw new AppError(
-      "KYC_REQUIRED",
-      "Complete identity verification before adding a payout account.",
+      "ACCOUNT_DISABLED",
+      "Your account is restricted from adding payment accounts.",
       403,
     );
   }

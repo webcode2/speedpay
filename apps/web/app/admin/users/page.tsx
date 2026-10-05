@@ -15,6 +15,7 @@ type Item = {
   status: string;
   firstName: string | null;
   lastName: string | null;
+  referredCount?: number;
 };
 
 export default function AdminUsersPage() {
@@ -71,7 +72,7 @@ export default function AdminUsersPage() {
       />
       {error ? <p className="mb-3 text-[var(--sp-danger)]">{error}</p> : null}
       <AdminTable
-        columns={["Name", "Email", "Status", ""]}
+        columns={["Name", "Email", "Referred", "Status", ""]}
         empty={items.length === 0 ? "No users found." : undefined}
       >
         {items.map((u) => (
@@ -80,6 +81,7 @@ export default function AdminUsersPage() {
               {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
             </td>
             <td className="px-4 py-3 text-[var(--sp-muted)]">{u.email}</td>
+            <td className="px-4 py-3">{u.referredCount ?? 0}</td>
             <td className="px-4 py-3">
               <StatusPill status={u.status} />
             </td>

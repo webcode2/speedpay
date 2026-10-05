@@ -7,6 +7,8 @@ export type PublicUser = {
   status: string;
   emailVerifiedAt: string | null;
   createdAt: string;
+  referralCode: string;
+  referredByUserId: string | null;
 };
 
 export function toPublicUser(
@@ -19,5 +21,7 @@ export function toPublicUser(
     status: user.status,
     emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
     createdAt: user.createdAt.toISOString(),
+    referralCode: user.referralCode,
+    referredByUserId: user.referredByUserId,
   };
 }

@@ -3,6 +3,7 @@ import { getBearerOrCookieToken } from "@/auth/request";
 import { resolveSession } from "@/auth/session";
 import { AppError } from "@/lib/app-error";
 import { getWallet } from "@/services/wallet-service";
+import { isWithdrawalEnabled } from "@/services/withdrawal-service";
 
 async function requireUser(request: Request) {
   const token = await getBearerOrCookieToken(request);
@@ -15,8 +16,13 @@ async function requireUser(request: Request) {
 export async function GET(request: Request) {
   try {
     const user = await requireUser(request);
-    return apiSuccess({ wallet: await getWallet(user.id) });
+    const [wallet, withdrawalsEnabled] = await Promise.all([
+      getWallet(user.id),
+      isWithdrawalEnabled(),
+    ]);
+    return apiSuccess({ wallet, withdrawalsEnabled });
   } catch (error) {
     return handleRouteError(error);
   }
 }
+

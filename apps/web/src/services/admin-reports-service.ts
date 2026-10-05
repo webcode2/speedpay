@@ -1,8 +1,7 @@
 import { and, eq, gte, lte, sql } from "drizzle-orm";
 import {
   deposits,
-  investmentAccruals,
-  investmentPackages,
+  investmentPlans,
   investments,
   users,
   walletTransactions,
@@ -69,7 +68,6 @@ export async function getReportsSummary(adminId: string, range: ReportRange) {
   const invWhere = createdAtFilter(investments.createdAt, range);
   const depWhere = createdAtFilter(deposits.createdAt, range);
   const wdWhere = createdAtFilter(withdrawals.createdAt, range);
-  const accWhere = createdAtFilter(investmentAccruals.createdAt, range);
   const wtWhere = createdAtFilter(walletTransactions.createdAt, range);
 
   const [
@@ -82,7 +80,6 @@ export async function getReportsSummary(adminId: string, range: ReportRange) {
     packagePerf,
     depositByStatus,
     withdrawalByStatus,
-    [returnsSum],
     walletByDirection,
   ] = await Promise.all([
     db
@@ -117,22 +114,22 @@ export async function getReportsSummary(adminId: string, range: ReportRange) {
       .where(and(eq(investments.status, "MATURED"), invWhere)),
     db
       .select({
-        packageId: investmentPackages.id,
-        name: investmentPackages.name,
-        soldLots: investmentPackages.soldLots,
+        planId: investmentPlans.id,
+        name: investmentPlans.name,
+        soldSlots: investmentPlans.soldSlots,
         principal: sql<number>`coalesce(sum(${investments.principal}), 0)`.mapWith(
           Number,
         ),
       })
-      .from(investmentPackages)
+      .from(investmentPlans)
       .leftJoin(
         investments,
         and(
-          eq(investments.packageId, investmentPackages.id),
+          eq(investments.planId, investmentPlans.id),
           invWhere ?? sql`true`,
         ),
       )
-      .groupBy(investmentPackages.id, investmentPackages.name, investmentPackages.soldLots)
+      .groupBy(investmentPlans.id, investmentPlans.name, investmentPlans.soldSlots)
       .orderBy(sql`coalesce(sum(${investments.principal}), 0) desc`)
       .limit(20),
     db
@@ -155,14 +152,6 @@ export async function getReportsSummary(adminId: string, range: ReportRange) {
       .from(withdrawals)
       .where(wdWhere)
       .groupBy(withdrawals.status),
-    db
-      .select({
-        total: sql<number>`coalesce(sum(${investmentAccruals.deltaAccrued}), 0)`.mapWith(
-          Number,
-        ),
-      })
-      .from(investmentAccruals)
-      .where(accWhere),
     db
       .select({
         direction: walletTransactions.direction,
@@ -191,16 +180,16 @@ export async function getReportsSummary(adminId: string, range: ReportRange) {
       activeCount: activeInv?.n ?? 0,
       maturedCount: maturedInv?.n ?? 0,
       packagePerformance: packagePerf.map((p) => ({
-        packageId: p.packageId,
+        planId: p.planId,
         name: p.name,
-        soldLots: p.soldLots,
+        soldSlots: p.soldSlots,
         principal: p.principal,
       })),
     },
     financial: {
       deposits: depositByStatus,
       withdrawals: withdrawalByStatus,
-      returnsMaterialized: returnsSum?.total ?? 0,
+      returnsMaterialized: 0,
       wallet: walletByDirection,
     },
   };
@@ -211,7 +200,6 @@ export const REPORT_EXPORT_KINDS = [
   "investments",
   "deposits",
   "withdrawals",
-  "returns",
   "wallet",
 ] as const;
 
@@ -262,9 +250,9 @@ export async function exportReportCsv(
       .select({
         id: investments.id,
         userId: investments.userId,
-        packageId: investments.packageId,
+        planId: investments.planId,
         principal: investments.principal,
-        lotCount: investments.lotCount,
+        slotCount: investments.slotCount,
         status: investments.status,
         createdAt: investments.createdAt,
       })
@@ -322,30 +310,6 @@ export async function exportReportCsv(
       .orderBy(withdrawals.createdAt);
     return {
       filename: `withdrawals-${stamp}.csv`,
-      csv: rowsToCsv(
-        rows.map((r) => ({
-          ...r,
-          createdAt: r.createdAt?.toISOString?.() ?? r.createdAt,
-        })),
-      ),
-    };
-  }
-
-  if (kind === "returns") {
-    const rows = await db
-      .select({
-        id: investmentAccruals.id,
-        investmentId: investmentAccruals.investmentId,
-        userId: investmentAccruals.userId,
-        deltaAccrued: investmentAccruals.deltaAccrued,
-        accruedReturn: investmentAccruals.accruedReturn,
-        createdAt: investmentAccruals.createdAt,
-      })
-      .from(investmentAccruals)
-      .where(createdAtFilter(investmentAccruals.createdAt, range))
-      .orderBy(investmentAccruals.createdAt);
-    return {
-      filename: `returns-${stamp}.csv`,
       csv: rowsToCsv(
         rows.map((r) => ({
           ...r,

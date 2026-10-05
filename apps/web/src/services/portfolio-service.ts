@@ -1,45 +1,36 @@
 import { and, desc, eq } from "drizzle-orm";
 import {
-  investmentLots,
-  investmentPackages,
+  investmentPlans,
   investments,
-  projects,
   walletTransactions,
 } from "@solar/database/schema";
-import { calculateInvestmentReturn } from "@/calculations/investment-return";
 import { getDb } from "@/db";
 import { AppError } from "@/lib/app-error";
 
 function toListItem(
   inv: typeof investments.$inferSelect,
-  packageName: string,
-  projectName: string,
+  planName: string,
 ) {
-  const calc = calculateInvestmentReturn({
-    principal: inv.principal,
-    returnRate: inv.returnRate,
-    returnType: inv.returnType,
-    startAt: inv.startAt,
-    maturityAt: inv.maturityAt,
-  });
   return {
     id: inv.id,
     status: inv.status,
     principal: inv.principal,
-    lotCount: inv.lotCount,
+    termRoi: 0,
+    dailyRoi: 0,
+    lastRoiOn: inv.lastRoiOn,
+    slotCount: inv.slotCount,
     returnType: inv.returnType,
     returnRate: inv.returnRate,
     startAt: inv.startAt,
     maturityAt: inv.maturityAt,
-    packageId: inv.packageId,
-    packageName,
-    projectName,
-    expectedReturn: calc.expectedReturn,
-    maturityValue: calc.maturityValue,
-    currentValue: calc.currentValue,
-    accruedReturn: calc.accruedReturn,
-    percentageComplete: calc.percentageComplete,
-    isMature: calc.isMature,
+    planId: inv.planId,
+    planName,
+    expectedReturn: 0,
+    maturityValue: inv.principal,
+    currentValue: inv.principal,
+    accruedReturn: 0,
+    percentageComplete: 100,
+    isMature: true,
     createdAt: inv.createdAt,
   };
 }
@@ -49,19 +40,17 @@ export async function listInvestments(userId: string) {
   const rows = await db
     .select({
       inv: investments,
-      packageName: investmentPackages.name,
-      projectName: projects.name,
+      planName: investmentPlans.name,
     })
     .from(investments)
     .innerJoin(
-      investmentPackages,
-      eq(investments.packageId, investmentPackages.id),
+      investmentPlans,
+      eq(investments.planId, investmentPlans.id),
     )
-    .innerJoin(projects, eq(investmentPackages.projectId, projects.id))
     .where(eq(investments.userId, userId))
     .orderBy(desc(investments.createdAt));
 
-  return rows.map((r) => toListItem(r.inv, r.packageName, r.projectName));
+  return rows.map((r) => toListItem(r.inv, r.planName));
 }
 
 export async function getInvestment(userId: string, id: string) {
@@ -69,24 +58,17 @@ export async function getInvestment(userId: string, id: string) {
   const [row] = await db
     .select({
       inv: investments,
-      packageName: investmentPackages.name,
-      projectName: projects.name,
+      planName: investmentPlans.name,
     })
     .from(investments)
     .innerJoin(
-      investmentPackages,
-      eq(investments.packageId, investmentPackages.id),
+      investmentPlans,
+      eq(investments.planId, investmentPlans.id),
     )
-    .innerJoin(projects, eq(investmentPackages.projectId, projects.id))
     .where(and(eq(investments.id, id), eq(investments.userId, userId)))
     .limit(1);
 
-  if (!row) throw new AppError("NOT_FOUND", "Investment not found.", 404);
-
-  const lots = await db
-    .select()
-    .from(investmentLots)
-    .where(eq(investmentLots.investmentId, id));
+  if (!row) throw new AppError("NOT_FOUND", "Subscription not found.", 404);
 
   const txs = await db
     .select()
@@ -99,29 +81,21 @@ export async function getInvestment(userId: string, id: string) {
     )
     .orderBy(desc(walletTransactions.createdAt));
 
-  const returns = calculateInvestmentReturn({
-    principal: row.inv.principal,
-    returnRate: row.inv.returnRate,
-    returnType: row.inv.returnType,
-    startAt: row.inv.startAt,
-    maturityAt: row.inv.maturityAt,
-  });
-
   return {
-    ...toListItem(row.inv, row.packageName, row.projectName),
-    lots: lots.map((l) => ({
-      id: l.id,
-      lotCount: l.lotCount,
-      pricePerLot: l.pricePerLot,
-      totalAmount: l.totalAmount,
-      createdAt: l.createdAt,
-    })),
+    ...toListItem(row.inv, row.planName),
+    lots: [],
     timeline: [
       { key: "created", label: "Purchased", at: row.inv.createdAt },
       { key: "start", label: "Start", at: row.inv.startAt },
-      { key: "maturity", label: "Maturity", at: row.inv.maturityAt },
     ],
-    returns,
+    returns: {
+      accruedReturn: 0,
+      currentValue: row.inv.principal,
+      expectedReturn: 0,
+      maturityValue: row.inv.principal,
+      percentageComplete: 100,
+      isMature: true,
+    },
     transactions: txs.map((t) => ({
       id: t.id,
       type: t.type,

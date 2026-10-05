@@ -28,7 +28,7 @@ export async function listAdminWithdrawals(input: {
   await requirePerm(input.adminId, "withdrawals.read");
   const db = getDb();
   const status = input.status ?? "PENDING";
-  const rows = await db
+  const query = db
     .select({
       w: withdrawals,
       userEmail: users.email,
@@ -41,10 +41,15 @@ export async function listAdminWithdrawals(input: {
     .innerJoin(
       payoutAccounts,
       eq(withdrawals.payoutAccountId, payoutAccounts.id),
-    )
-    .where(eq(withdrawals.status, status))
-    .orderBy(desc(withdrawals.createdAt))
-    .limit(100);
+    );
+
+  const rows =
+    status === "ALL"
+      ? await query.orderBy(desc(withdrawals.createdAt)).limit(100)
+      : await query
+          .where(eq(withdrawals.status, status))
+          .orderBy(desc(withdrawals.createdAt))
+          .limit(100);
 
   return rows.map((r) => ({
     id: r.w.id,

@@ -14,7 +14,11 @@ import { AppError } from "@/lib/app-error";
 import { ensureWallet } from "@/services/wallet-service";
 import { safeNotify } from "@/services/notification-service";
 import { verifyWithdrawalPin } from "@/services/withdrawal-pin-service";
-import { getSettingNumber } from "@/settings/settings";
+import { getSettingBool, getSettingNumber } from "@/settings/settings";
+
+export async function isWithdrawalEnabled(): Promise<boolean> {
+  return await getSettingBool("withdrawal.enabled", true);
+}
 
 export function canSubmitWithdrawal(input: {
   userStatus: string;
@@ -22,7 +26,9 @@ export function canSubmitWithdrawal(input: {
   availableBalance: number;
   payoutStatus: string;
   minAmount?: number;
+  withdrawalsEnabled?: boolean;
 }): string | null {
+  if (input.withdrawalsEnabled === false) return "SERVICE_OVERLOAD";
   const minAmount = input.minAmount ?? 100;
   const BLOCKED = new Set([
     "WITHDRAWAL_RESTRICTED",
@@ -84,6 +90,15 @@ export async function createWithdrawal(input: {
   pin: string;
   idempotencyKey?: string;
 }) {
+  const enabled = await isWithdrawalEnabled();
+  if (!enabled) {
+    throw new AppError(
+      "SERVICE_UNAVAILABLE",
+      "Server overload wait for a few moment",
+      503,
+    );
+  }
+
   await verifyWithdrawalPin(input.userId, input.pin);
   const minAmount = await getSettingNumber("withdrawal.min_amount", 100);
   const db = getDb();

@@ -13,7 +13,47 @@ import {
 } from "@/services/platform-payment-account-service";
 import { getSetting, getSettingNumber } from "@/settings/settings";
 
-export async function createDeposit(userId: string, amount: number) {
+export type CreateDepositInput = {
+  userId: string;
+  amount: number;
+  senderTransactionId?: string | null;
+  senderName?: string | null;
+  receiptUrl?: string | null;
+  receiptKey?: string | null;
+  paymentAccountId?: string | null;
+};
+
+export async function createDeposit(
+  userIdOrInput: string | CreateDepositInput,
+  amountArg?: number,
+  paymentAccountIdArg?: string | null,
+  senderTransactionIdArg?: string | null,
+  senderNameArg?: string | null,
+  receiptUrlArg?: string | null,
+  receiptKeyArg?: string | null,
+) {
+  const input =
+    typeof userIdOrInput === "object"
+      ? userIdOrInput
+      : {
+          userId: userIdOrInput,
+          amount: amountArg!,
+          paymentAccountId: paymentAccountIdArg,
+          senderTransactionId: senderTransactionIdArg,
+          senderName: senderNameArg,
+          receiptUrl: receiptUrlArg,
+          receiptKey: receiptKeyArg,
+        };
+
+  const {
+    userId,
+    amount,
+    paymentAccountId,
+    senderTransactionId,
+    senderName,
+    receiptUrl,
+    receiptKey,
+  } = input;
   const minDeposit = await getSettingNumber("deposit.min_amount", 100);
   const currency = await getSetting("app.currency", "NGN");
   if (validateDepositAmount(amount, minDeposit) !== "OK") {
@@ -25,14 +65,13 @@ export async function createDeposit(userId: string, amount: number) {
   }
 
   const published = await listPublishedPaymentAccounts();
-  const selected = pickRandomPublishedAccount(published);
-  if (!selected) {
-    throw new AppError(
-      "VALIDATION_ERROR",
-      "No published payment accounts available. Contact support.",
-      400,
-    );
-  }
+  const selected = paymentAccountId
+    ? published.find((a) => a.id === paymentAccountId) ?? null
+    : pickRandomPublishedAccount(published);
+
+  const txId =
+    senderTransactionId?.trim() ||
+    (receiptUrl ? `RECEIPT-${Date.now().toString(36).toUpperCase()}` : `TX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`);
 
   const db = getDb();
   const [deposit] = await db
@@ -42,7 +81,12 @@ export async function createDeposit(userId: string, amount: number) {
       amount,
       currency,
       status: "PENDING",
-      provider: "mock",
+      provider: "manual",
+      senderTransactionId: txId,
+      senderName: senderName?.trim() || null,
+      receiptUrl: receiptUrl?.trim() || null,
+      receiptKey: receiptKey?.trim() || null,
+      paymentAccountId: selected?.id ?? null,
     })
     .returning();
 
@@ -51,15 +95,13 @@ export async function createDeposit(userId: string, amount: number) {
     amount,
     currency,
     reference: deposit!.id,
-    metadata: { userId },
+    metadata: { userId, senderTransactionId: txId },
   });
 
   const [updated] = await db
     .update(deposits)
     .set({
-      provider: provider.name,
-      providerRef: init.providerRef,
-      status: "PROCESSING",
+      providerRef: init.providerRef || txId,
       updatedAt: new Date(),
     })
     .where(eq(deposits.id, deposit!.id))
@@ -68,18 +110,22 @@ export async function createDeposit(userId: string, amount: number) {
   return {
     deposit: updated!,
     payment: {
-      providerRef: init.providerRef,
+      providerRef: updated!.providerRef,
+      senderTransactionId: txId,
+      senderName: updated!.senderName,
       paymentUrl: init.paymentUrl,
-      instructions: formatPaymentInstructions(selected),
-      account: {
-        id: selected.id,
-        type: selected.type,
-        accountName: selected.accountName,
-        accountNumber: selected.accountNumber,
-        bankName: selected.bankName,
-        provider: selected.provider,
-        notes: selected.notes,
-      },
+      instructions: selected ? formatPaymentInstructions(selected) : "",
+      account: selected
+        ? {
+            id: selected.id,
+            type: selected.type,
+            accountName: selected.accountName,
+            accountNumber: selected.accountNumber,
+            bankName: selected.bankName,
+            provider: selected.provider,
+            notes: selected.notes,
+          }
+        : null,
     },
   };
 }

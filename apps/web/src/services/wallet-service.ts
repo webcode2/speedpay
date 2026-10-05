@@ -79,6 +79,7 @@ export async function getWallet(userId: string) {
     currency: wallet.currency,
     availableBalance,
     pendingBalance,
+    dailyRoi: 0,
     createdAt: wallet.createdAt,
   };
 }

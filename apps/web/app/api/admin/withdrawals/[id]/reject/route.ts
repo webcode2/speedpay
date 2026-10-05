@@ -8,17 +8,21 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, { params }: Params) {
   try {
+    const { id } = await params;
     const token = await getAdminBearerOrCookieToken(request);
     if (!token) throw new AppError("UNAUTHORIZED", "Authentication required.", 401);
     const admin = await getCurrentAdmin(token);
-    const { id } = await params;
-    const body = (await request.json()) as { reason?: string };
-    if (!body.reason?.trim()) {
-      throw new AppError("VALIDATION_ERROR", "reason is required.", 400);
+    const body = (await request.json().catch(() => ({}))) as { reason?: string };
+    if (!body.reason || !body.reason.trim()) {
+      throw new AppError("VALIDATION_ERROR", "Rejection reason is required.", 400);
     }
-    return apiSuccess({
-      withdrawal: await rejectWithdrawal(admin.id, id, body.reason, requestMeta(request)),
-    });
+    const updated = await rejectWithdrawal(
+      admin.id,
+      id,
+      body.reason.trim(),
+      requestMeta(request),
+    );
+    return apiSuccess({ withdrawal: updated });
   } catch (error) {
     return handleRouteError(error);
   }

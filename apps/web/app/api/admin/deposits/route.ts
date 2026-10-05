@@ -9,15 +9,26 @@ export async function GET(request: Request) {
     const token = await getAdminBearerOrCookieToken(request);
     if (!token) throw new AppError("UNAUTHORIZED", "Authentication required.", 401);
     const admin = await getCurrentAdmin(token);
-    const url = new URL(request.url);
-    return apiSuccess(
-      await listAdminDeposits({
-        adminId: admin.id,
-        status: url.searchParams.get("status") ?? undefined,
-        limit: Number(url.searchParams.get("limit") ?? 50),
-        offset: Number(url.searchParams.get("offset") ?? 0),
-      }),
-    );
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") ?? undefined;
+    const search = searchParams.get("search") ?? undefined;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!, 10)
+      : 50;
+    const offset = searchParams.get("offset")
+      ? parseInt(searchParams.get("offset")!, 10)
+      : 0;
+
+    const data = await listAdminDeposits({
+      adminId: admin.id,
+      status,
+      search,
+      limit,
+      offset,
+    });
+
+    return apiSuccess(data);
   } catch (error) {
     return handleRouteError(error);
   }
